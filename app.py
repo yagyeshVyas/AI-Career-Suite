@@ -26,126 +26,202 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
 :root {
-    --bg:#07070f; --bg2:#0e0e1a; --bg3:#13131f;
-    --border:rgba(139,92,246,0.18); --border2:rgba(139,92,246,0.35);
+    --bg:#050510; --bg2:#0a0a1a; --bg3:#10101f;
+    --border:rgba(139,92,246,0.15); --border2:rgba(139,92,246,0.35);
     --purple:#8b5cf6; --purple2:#a78bfa; --violet:#7c3aed;
     --green:#10b981; --amber:#f59e0b; --red:#ef4444;
+    --cyan:#06b6d4; --pink:#ec4899; --nvidia:#76b900;
     --text:#e2e8f0; --text2:#94a3b8; --text3:#64748b;
     --font-h:'Syne',sans-serif; --font-b:'DM Sans',sans-serif;
+    --glass:rgba(255,255,255,0.03); --glass2:rgba(255,255,255,0.06);
 }
+
+/* ── Animations ── */
+@keyframes aurora { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+@keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+@keyframes pulse-glow { 0%,100%{box-shadow:0 0 20px rgba(139,92,246,0.15)} 50%{box-shadow:0 0 40px rgba(139,92,246,0.3)} }
+@keyframes shimmer { 0%{background-position:-1000px 0} 100%{background-position:1000px 0} }
+@keyframes gradient-shift { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+@keyframes spin-slow { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
+@keyframes fade-in { 0%{opacity:0;transform:translateY(12px)} 100%{opacity:1;transform:translateY(0)} }
+@keyframes border-glow { 0%,100%{border-color:rgba(139,92,246,0.2)} 50%{border-color:rgba(139,92,246,0.5)} }
+
 .stApp { background:var(--bg) !important; font-family:var(--font-b) !important; }
-[data-testid="stSidebar"] { background:var(--bg2) !important; border-right:1px solid var(--border) !important; }
+[data-testid="stSidebar"] {
+    background:linear-gradient(180deg,var(--bg2) 0%,#0d0820 100%) !important;
+    border-right:1px solid var(--border) !important;
+    backdrop-filter:blur(20px) !important;
+}
 [data-testid="stAppViewContainer"] > .main .block-container { padding:2rem 3rem !important; max-width:1400px !important; }
 h1,h2,h3 { font-family:var(--font-h) !important; color:var(--text) !important; }
 
+/* ── Hero — Animated Aurora Background ── */
 .hero {
-    position:relative; background:linear-gradient(135deg,#13131f 0%,#1a0a2e 50%,#0a1628 100%);
-    border:1px solid var(--border2); border-radius:20px; padding:3rem;
+    position:relative;
+    background:linear-gradient(135deg,#0a0a1a 0%,#1a0a2e 30%,#0a1628 60%,#0d0820 100%);
+    border:1px solid rgba(139,92,246,0.25); border-radius:24px; padding:3.5rem 3rem;
     margin-bottom:2.5rem; overflow:hidden; text-align:center;
+    animation:border-glow 4s ease-in-out infinite;
 }
 .hero::before {
-    content:''; position:absolute; top:-60%; left:50%; transform:translateX(-50%);
-    width:600px; height:400px;
-    background:radial-gradient(ellipse,rgba(139,92,246,0.25) 0%,transparent 70%);
+    content:''; position:absolute; top:-80%; left:-20%; width:140%; height:200%;
+    background:linear-gradient(45deg,
+        rgba(139,92,246,0.12),rgba(6,182,212,0.08),rgba(236,72,153,0.06),
+        rgba(118,185,0,0.05),rgba(139,92,246,0.12));
+    background-size:400% 400%;
+    animation:aurora 12s ease infinite;
+    filter:blur(60px);
+}
+.hero::after {
+    content:''; position:absolute; bottom:-50%; right:-30%;
+    width:500px; height:500px;
+    background:radial-gradient(circle,rgba(6,182,212,0.15) 0%,transparent 60%);
+    animation:float 8s ease-in-out infinite;
 }
 .hero-badge {
-    display:inline-block; background:rgba(139,92,246,0.15); border:1px solid rgba(139,92,246,0.4);
-    color:var(--purple2); font-size:0.72rem; font-weight:600; letter-spacing:0.12em;
-    text-transform:uppercase; padding:5px 14px; border-radius:100px; margin-bottom:1.2rem;
+    position:relative; display:inline-block;
+    background:rgba(139,92,246,0.12); border:1px solid rgba(139,92,246,0.35);
+    color:var(--purple2); font-size:0.7rem; font-weight:600; letter-spacing:0.14em;
+    text-transform:uppercase; padding:6px 18px; border-radius:100px; margin-bottom:1.2rem;
+    backdrop-filter:blur(10px);
 }
 .hero h1 {
-    font-family:var(--font-h) !important; font-size:2.8rem !important; font-weight:800 !important;
-    background:linear-gradient(135deg,#e2e8f0 0%,#a78bfa 50%,#60a5fa 100%);
+    position:relative; font-family:var(--font-h) !important; font-size:3rem !important; font-weight:800 !important;
+    background:linear-gradient(135deg,#e2e8f0 0%,#a78bfa 35%,#60a5fa 65%,#06b6d4 100%);
+    background-size:200% 200%; animation:gradient-shift 6s ease infinite;
     -webkit-background-clip:text !important; -webkit-text-fill-color:transparent !important;
-    background-clip:text !important; line-height:1.2 !important; margin-bottom:0.8rem !important;
+    background-clip:text !important; line-height:1.15 !important; margin-bottom:0.8rem !important;
 }
-.hero p { color:var(--text2) !important; font-size:1.05rem !important; font-weight:300 !important; max-width:600px; margin:0 auto !important; }
+.hero p { position:relative; color:var(--text2) !important; font-size:1.05rem !important; font-weight:300 !important; max-width:620px; margin:0 auto !important; line-height:1.7 !important; }
 
+/* ── Score Cards — Glow Pulse ── */
 .score-wrap {
-    background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:16px;
-    padding:1.5rem; text-align:center; position:relative; overflow:hidden; margin-bottom:1rem;
+    background:var(--glass); border:1px solid var(--border); border-radius:18px;
+    padding:1.6rem; text-align:center; position:relative; overflow:hidden; margin-bottom:1rem;
+    transition:all 0.3s ease; backdrop-filter:blur(10px);
 }
-.score-wrap::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; border-radius:16px 16px 0 0; }
-.score-wrap.green::before { background:linear-gradient(90deg,#10b981,#34d399); }
-.score-wrap.amber::before { background:linear-gradient(90deg,#f59e0b,#fbbf24); }
-.score-wrap.red::before   { background:linear-gradient(90deg,#ef4444,#f87171); }
-.score-number { font-family:var(--font-h); font-size:3.5rem; font-weight:800; line-height:1; margin:0.3rem 0; }
-.score-number.green { color:#10b981; } .score-number.amber { color:#f59e0b; } .score-number.red { color:#ef4444; }
+.score-wrap:hover { transform:translateY(-3px); border-color:var(--border2); }
+.score-wrap::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; border-radius:18px 18px 0 0; }
+.score-wrap.green::before { background:linear-gradient(90deg,#10b981,#34d399,#06b6d4); background-size:200% 100%; animation:shimmer 3s linear infinite; }
+.score-wrap.amber::before { background:linear-gradient(90deg,#f59e0b,#fbbf24,#f59e0b); background-size:200% 100%; animation:shimmer 3s linear infinite; }
+.score-wrap.red::before   { background:linear-gradient(90deg,#ef4444,#f87171,#ef4444); background-size:200% 100%; animation:shimmer 3s linear infinite; }
+.score-number { font-family:var(--font-h); font-size:3.8rem; font-weight:800; line-height:1; margin:0.3rem 0; }
+.score-number.green { color:#10b981; text-shadow:0 0 30px rgba(16,185,129,0.3); }
+.score-number.amber { color:#f59e0b; text-shadow:0 0 30px rgba(245,158,11,0.3); }
+.score-number.red { color:#ef4444; text-shadow:0 0 30px rgba(239,68,68,0.3); }
 .score-label  { font-size:0.72rem; color:var(--text3); text-transform:uppercase; letter-spacing:0.1em; font-weight:600; }
 .score-title  { font-size:0.82rem; color:var(--text2); font-weight:500; margin-bottom:0.5rem; }
-.score-badge  { display:inline-block; padding:3px 10px; border-radius:100px; font-size:0.72rem; font-weight:600; margin-top:0.5rem; }
+.score-badge  { display:inline-block; padding:3px 12px; border-radius:100px; font-size:0.72rem; font-weight:600; margin-top:0.5rem; }
 .score-badge.green { background:rgba(16,185,129,0.15); color:#10b981; border:1px solid rgba(16,185,129,0.3); }
 .score-badge.amber { background:rgba(245,158,11,0.15); color:#f59e0b; border:1px solid rgba(245,158,11,0.3); }
 .score-badge.red   { background:rgba(239,68,68,0.15);  color:#ef4444; border:1px solid rgba(239,68,68,0.3); }
 
-.chips { display:flex; flex-wrap:wrap; gap:7px; margin:0.6rem 0; }
-.chip  { padding:4px 12px; border-radius:100px; font-size:0.78rem; font-weight:500; border:1px solid; }
+/* ── Chips — Hover Effect ── */
+.chips { display:flex; flex-wrap:wrap; gap:8px; margin:0.6rem 0; }
+.chip  { padding:5px 14px; border-radius:100px; font-size:0.78rem; font-weight:500; border:1px solid; transition:all 0.2s ease; cursor:default; }
+.chip:hover { transform:translateY(-2px); }
 .chip-green  { background:rgba(16,185,129,0.1);  color:#34d399; border-color:rgba(16,185,129,0.25); }
+.chip-green:hover { background:rgba(16,185,129,0.2); box-shadow:0 4px 12px rgba(16,185,129,0.15); }
 .chip-red    { background:rgba(239,68,68,0.1);   color:#f87171; border-color:rgba(239,68,68,0.25); }
+.chip-red:hover { background:rgba(239,68,68,0.2); box-shadow:0 4px 12px rgba(239,68,68,0.15); }
 .chip-blue   { background:rgba(96,165,250,0.1);  color:#93c5fd; border-color:rgba(96,165,250,0.25); }
+.chip-blue:hover { background:rgba(96,165,250,0.2); box-shadow:0 4px 12px rgba(96,165,250,0.15); }
 .chip-purple { background:rgba(139,92,246,0.1);  color:#a78bfa; border-color:rgba(139,92,246,0.25); }
+.chip-purple:hover { background:rgba(139,92,246,0.2); box-shadow:0 4px 12px rgba(139,92,246,0.15); }
 
-.info-box    { background:rgba(139,92,246,0.06); border:1px solid rgba(139,92,246,0.2); border-left:3px solid var(--purple); border-radius:0 10px 10px 0; padding:1rem 1.2rem; margin:0.5rem 0; font-size:0.9rem; color:var(--text); line-height:1.6; }
-.win-box     { background:rgba(245,158,11,0.06); border:1px solid rgba(245,158,11,0.2); border-left:3px solid var(--amber); border-radius:0 10px 10px 0; padding:1rem 1.2rem; margin:0.5rem 0; font-size:0.9rem; color:var(--text); line-height:1.6; }
-.danger-box  { background:rgba(239,68,68,0.06);  border:1px solid rgba(239,68,68,0.2);  border-left:3px solid var(--red);   border-radius:0 10px 10px 0; padding:1rem 1.2rem; margin:0.5rem 0; font-size:0.9rem; color:var(--text); line-height:1.6; }
-.success-box { background:rgba(16,185,129,0.06); border:1px solid rgba(16,185,129,0.2); border-left:3px solid var(--green); border-radius:0 10px 10px 0; padding:1rem 1.2rem; margin:0.5rem 0; font-size:0.9rem; color:var(--text); line-height:1.6; }
+/* ── Info Boxes — Glass Morphism ── */
+.info-box    { background:rgba(139,92,246,0.06); border:1px solid rgba(139,92,246,0.2); border-left:3px solid var(--purple); border-radius:0 12px 12px 0; padding:1rem 1.3rem; margin:0.5rem 0; font-size:0.9rem; color:var(--text); line-height:1.6; backdrop-filter:blur(8px); transition:all 0.2s; }
+.info-box:hover { border-left-color:#a78bfa; background:rgba(139,92,246,0.09); }
+.win-box     { background:rgba(245,158,11,0.06); border:1px solid rgba(245,158,11,0.2); border-left:3px solid var(--amber); border-radius:0 12px 12px 0; padding:1rem 1.3rem; margin:0.5rem 0; font-size:0.9rem; color:var(--text); line-height:1.6; backdrop-filter:blur(8px); }
+.danger-box  { background:rgba(239,68,68,0.06);  border:1px solid rgba(239,68,68,0.2);  border-left:3px solid var(--red);   border-radius:0 12px 12px 0; padding:1rem 1.3rem; margin:0.5rem 0; font-size:0.9rem; color:var(--text); line-height:1.6; }
+.success-box { background:rgba(16,185,129,0.06); border:1px solid rgba(16,185,129,0.2); border-left:3px solid var(--green); border-radius:0 12px 12px 0; padding:1rem 1.3rem; margin:0.5rem 0; font-size:0.9rem; color:var(--text); line-height:1.6; }
 
+/* ── Section Title — Animated Line ── */
 .section-title {
     font-family:var(--font-h); font-size:0.78rem; font-weight:700; letter-spacing:0.14em;
     text-transform:uppercase; color:var(--purple2); margin:1.5rem 0 0.8rem;
     display:flex; align-items:center; gap:10px;
 }
-.section-title::after { content:''; flex:1; height:1px; background:linear-gradient(90deg,rgba(139,92,246,0.4),transparent); }
+.section-title::after {
+    content:''; flex:1; height:1px;
+    background:linear-gradient(90deg,rgba(139,92,246,0.5),rgba(6,182,212,0.2),transparent);
+}
 
 .summary-box {
-    background:linear-gradient(135deg,rgba(139,92,246,0.08) 0%,rgba(16,185,129,0.05) 100%);
-    border:1px solid rgba(139,92,246,0.25); border-radius:14px;
+    background:linear-gradient(135deg,rgba(139,92,246,0.08) 0%,rgba(6,182,212,0.05) 50%,rgba(16,185,129,0.04) 100%);
+    border:1px solid rgba(139,92,246,0.25); border-radius:16px;
     padding:1.4rem 1.6rem; font-size:0.95rem; color:var(--text); line-height:1.7; margin:1rem 0;
+    backdrop-filter:blur(10px);
 }
 .resume-output {
-    background:rgba(255,255,255,0.02); border:1px solid var(--border); border-radius:14px;
+    background:var(--glass); border:1px solid var(--border); border-radius:16px;
     padding:2rem; font-family:'DM Sans',sans-serif; font-size:0.88rem;
     color:var(--text); line-height:1.8; white-space:pre-wrap;
+    backdrop-filter:blur(8px);
 }
 .api-box { background:rgba(139,92,246,0.08); border:1px solid rgba(139,92,246,0.2); border-radius:10px; padding:0.8rem; font-size:0.78rem; color:var(--purple2); margin-top:0.4rem; line-height:1.6; }
 .api-box a { color:var(--purple2); text-decoration:none; font-weight:600; }
 .free-badge { display:inline-block; background:rgba(16,185,129,0.15); color:#10b981; border:1px solid rgba(16,185,129,0.3); font-size:0.65rem; padding:2px 8px; border-radius:100px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; margin-bottom:0.4rem; }
 .paid-badge { display:inline-block; background:rgba(245,158,11,0.15); color:#f59e0b; border:1px solid rgba(245,158,11,0.3); font-size:0.65rem; padding:2px 8px; border-radius:100px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; margin-bottom:0.4rem; }
+.nvidia-badge { display:inline-block; background:rgba(118,185,0,0.15); color:#76b900; border:1px solid rgba(118,185,0,0.3); font-size:0.65rem; padding:2px 8px; border-radius:100px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; margin-bottom:0.4rem; }
 
+/* ── Form Elements — Enhanced ── */
 .stTextInput>div>div>input, .stTextArea>div>div>textarea, .stSelectbox>div>div {
     background:rgba(255,255,255,0.04) !important; border:1px solid var(--border) !important;
-    border-radius:10px !important; color:var(--text) !important; font-family:var(--font-b) !important;
+    border-radius:12px !important; color:var(--text) !important; font-family:var(--font-b) !important;
+    transition:all 0.25s ease !important;
 }
 .stTextInput>div>div>input:focus, .stTextArea>div>div>textarea:focus {
-    border-color:var(--purple) !important; box-shadow:0 0 0 3px rgba(139,92,246,0.1) !important;
+    border-color:var(--purple) !important; box-shadow:0 0 0 3px rgba(139,92,246,0.12),0 0 20px rgba(139,92,246,0.08) !important;
 }
+
+/* ── Buttons — Shimmer + Glow ── */
 .stButton>button {
-    background:linear-gradient(135deg,#7c3aed,#6d28d9) !important; color:white !important;
-    border:none !important; border-radius:10px !important; font-family:var(--font-h) !important;
+    background:linear-gradient(135deg,#7c3aed,#6d28d9,#5b21b6) !important; color:white !important;
+    border:none !important; border-radius:12px !important; font-family:var(--font-h) !important;
     font-weight:700 !important; font-size:0.92rem !important; letter-spacing:0.03em !important;
-    padding:0.65rem 2rem !important; transition:all 0.2s !important;
-    box-shadow:0 4px 20px rgba(124,58,237,0.3) !important;
+    padding:0.7rem 2rem !important; transition:all 0.3s cubic-bezier(0.4,0,0.2,1) !important;
+    box-shadow:0 4px 20px rgba(124,58,237,0.3),inset 0 1px 0 rgba(255,255,255,0.1) !important;
+    position:relative !important; overflow:hidden !important;
 }
-.stButton>button:hover { background:linear-gradient(135deg,#8b5cf6,#7c3aed) !important; box-shadow:0 4px 30px rgba(139,92,246,0.5) !important; transform:translateY(-1px) !important; }
+.stButton>button:hover {
+    background:linear-gradient(135deg,#8b5cf6,#7c3aed,#6d28d9) !important;
+    box-shadow:0 6px 35px rgba(139,92,246,0.5),inset 0 1px 0 rgba(255,255,255,0.15) !important;
+    transform:translateY(-2px) !important;
+}
 .stButton>button[disabled] { background:rgba(255,255,255,0.06) !important; color:var(--text3) !important; box-shadow:none !important; transform:none !important; }
-.stDownloadButton>button { background:rgba(16,185,129,0.12) !important; color:#10b981 !important; border:1px solid rgba(16,185,129,0.3) !important; border-radius:10px !important; font-weight:600 !important; box-shadow:none !important; }
-.stDownloadButton>button:hover { background:rgba(16,185,129,0.2) !important; }
-.stProgress>div>div>div>div { background:linear-gradient(90deg,#7c3aed,#a78bfa) !important; border-radius:100px !important; }
+.stDownloadButton>button { background:rgba(16,185,129,0.1) !important; color:#10b981 !important; border:1px solid rgba(16,185,129,0.25) !important; border-radius:12px !important; font-weight:600 !important; box-shadow:none !important; transition:all 0.25s ease !important; }
+.stDownloadButton>button:hover { background:rgba(16,185,129,0.2) !important; transform:translateY(-1px) !important; box-shadow:0 4px 15px rgba(16,185,129,0.15) !important; }
+.stProgress>div>div>div>div { background:linear-gradient(90deg,#7c3aed,#a78bfa,#06b6d4) !important; background-size:200% 100% !important; animation:shimmer 2s linear infinite !important; border-radius:100px !important; }
 .stProgress>div>div>div { background:rgba(255,255,255,0.06) !important; border-radius:100px !important; }
 .stRadio>div { gap:0.5rem !important; }
-.stRadio>div>label { background:rgba(255,255,255,0.03) !important; border:1px solid var(--border) !important; border-radius:8px !important; padding:0.4rem 0.8rem !important; color:var(--text2) !important; transition:all 0.2s !important; }
-.stRadio>div>label:has(input:checked) { background:rgba(139,92,246,0.12) !important; border-color:var(--purple) !important; color:var(--purple2) !important; }
+.stRadio>div>label { background:var(--glass) !important; border:1px solid var(--border) !important; border-radius:10px !important; padding:0.4rem 0.85rem !important; color:var(--text2) !important; transition:all 0.25s ease !important; }
+.stRadio>div>label:has(input:checked) { background:rgba(139,92,246,0.12) !important; border-color:var(--purple) !important; color:var(--purple2) !important; box-shadow:0 0 15px rgba(139,92,246,0.1) !important; }
 .stSelectbox>label, .stTextInput>label, .stTextArea>label, .stRadio>label, .stFileUploader>label, .stSlider>label, .stCheckbox>label span { color:var(--text2) !important; font-size:0.85rem !important; }
-[data-testid="stFileUploadDropzone"] { background:rgba(255,255,255,0.02) !important; border:1px dashed var(--border2) !important; border-radius:12px !important; }
-div[data-testid="stExpander"] { background:rgba(255,255,255,0.02) !important; border:1px solid var(--border) !important; border-radius:12px !important; }
-div[data-testid="stExpander"]:hover { border-color:var(--border2) !important; }
-[data-testid="stMetric"] { background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:12px; padding:1rem; }
+[data-testid="stFileUploadDropzone"] { background:var(--glass) !important; border:1px dashed var(--border2) !important; border-radius:14px !important; transition:all 0.25s ease !important; }
+[data-testid="stFileUploadDropzone"]:hover { border-color:var(--purple) !important; background:rgba(139,92,246,0.04) !important; }
+div[data-testid="stExpander"] { background:var(--glass) !important; border:1px solid var(--border) !important; border-radius:14px !important; transition:all 0.25s ease !important; }
+div[data-testid="stExpander"]:hover { border-color:var(--border2) !important; background:var(--glass2) !important; }
+[data-testid="stMetric"] { background:var(--glass); border:1px solid var(--border); border-radius:14px; padding:1.1rem; transition:all 0.25s ease; }
+[data-testid="stMetric"]:hover { border-color:var(--border2); transform:translateY(-2px); }
 [data-testid="stMetricLabel"] { color:var(--text2) !important; font-size:0.8rem !important; }
 [data-testid="stMetricValue"] { color:var(--text) !important; font-family:var(--font-h) !important; }
 hr { border-color:var(--border) !important; }
 #MainMenu, footer, header { visibility:hidden; }
+
+/* ── Glass Card ── */
+.glass-card {
+    backdrop-filter:blur(12px); transition:all 0.3s ease;
+}
+.glass-card:hover { transform:translateY(-2px); }
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width:6px; }
+::-webkit-scrollbar-track { background:var(--bg); }
+::-webkit-scrollbar-thumb { background:rgba(139,92,246,0.3); border-radius:100px; }
+::-webkit-scrollbar-thumb:hover { background:rgba(139,92,246,0.5); }
 </style>
 """, unsafe_allow_html=True)
 
@@ -160,7 +236,7 @@ if "prev_provider" not in st.session_state:
 # ── SIDEBAR ──────────────────────────────────────────────
 with st.sidebar:
     st.markdown("<div style='font-family:Syne,sans-serif;font-size:1.3rem;font-weight:800;background:linear-gradient(135deg,#a78bfa,#60a5fa);-webkit-background-clip:text;-webkit-text-fill-color:transparent'>🚀 AI Career Suite</div>", unsafe_allow_html=True)
-    st.markdown("<div style='font-size:0.72rem;color:#475569;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:1.5rem'>10+ AI Providers</div>", unsafe_allow_html=True)
+    st.markdown("<div style='font-size:0.72rem;color:#475569;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:1.5rem'>13+ AI Providers · NVIDIA NIM</div>", unsafe_allow_html=True)
 
     # ── Provider Selector ──
     st.markdown("**🌐 AI Provider**")
@@ -712,8 +788,8 @@ elif page == "🔑 API Guide":
     </div>""", unsafe_allow_html=True)
 
     st.markdown("""<div class="success-box">
-    💡 <strong>Best strategy for beginners:</strong> Start with <strong>🔀 OpenRouter</strong> (one key = access to 200+ models) or
-    <strong>⚡ Groq</strong> (fastest free inference). Both are completely free with no credit card!
+    💡 <strong>Best strategy for beginners:</strong> Start with <strong>🟢 NVIDIA Build</strong> (Gemma 4 31B — 1000 free credits!),
+    <strong>🔀 OpenRouter</strong> (one key = 200+ models), or <strong>⚡ Groq</strong> (fastest free inference). All free with no credit card!
     </div>""", unsafe_allow_html=True)
 
     # ── FREE PROVIDERS FIRST ──
@@ -783,6 +859,39 @@ elif page == "🔑 API Guide":
     </div>
     <div style="background:rgba(245,158,11,0.06);border-radius:8px;padding:0.8rem;border:1px solid rgba(245,158,11,0.2);font-size:0.82rem;color:#fbbf24;margin-top:0.8rem">
     ⚡ Best free models: Llama 3.3 70B Versatile · DeepSeek R1 Distill · Gemma2 9B · Mixtral 8x7B · Llama 3.2 Vision
+    </div>
+    </div>""", unsafe_allow_html=True)
+
+    # NVIDIA Build
+    st.markdown("""<div class="glass-card" style="background:rgba(118,185,0,0.04);border:1px solid rgba(118,185,0,0.3);border-radius:16px;padding:1.8rem;margin-bottom:1.2rem">
+    <h3 style="color:#76b900;font-family:Syne;margin-bottom:0.8rem">🟢 NVIDIA Build <span style="background:rgba(118,185,0,0.15);color:#76b900;border:1px solid rgba(118,185,0,0.3);font-size:0.7rem;padding:3px 10px;border-radius:100px;font-weight:700;margin-left:10px">⭐ NEW — 1000 FREE CREDITS</span></h3>
+    <p style="color:#94a3b8;margin-bottom:1rem">NVIDIA NIM inference — run <strong style="color:#e2e8f0">Gemma 4 31B IT</strong>, Llama 3.3 70B, and Nemotron on NVIDIA's blazing-fast GPUs. <strong style="color:#e2e8f0">1000 free API credits</strong> on signup!</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;margin-bottom:1rem">
+        <div style="background:rgba(255,255,255,0.03);border-radius:10px;padding:1rem;border:1px solid rgba(255,255,255,0.06)">
+            <div style="color:#76b900;font-weight:700;font-size:0.8rem;text-transform:uppercase;letter-spacing:0.08em">Free Tier</div>
+            <div style="color:#e2e8f0;margin-top:0.3rem">1000 free credits<br>No credit card<br>Enterprise GPUs</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.03);border-radius:10px;padding:1rem;border:1px solid rgba(255,255,255,0.06)">
+            <div style="color:#f59e0b;font-weight:700;font-size:0.8rem;text-transform:uppercase;letter-spacing:0.08em">Best Model</div>
+            <div style="color:#e2e8f0;margin-top:0.3rem">Gemma 4 31B IT<br>Frontier reasoning<br>Coding & agents</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.03);border-radius:10px;padding:1rem;border:1px solid rgba(255,255,255,0.06)">
+            <div style="color:#a78bfa;font-weight:700;font-size:0.8rem;text-transform:uppercase;letter-spacing:0.08em">Key Format</div>
+            <div style="color:#e2e8f0;margin-top:0.3rem;font-family:monospace;font-size:0.85rem">nvapi-...</div>
+        </div>
+    </div>
+    <div style="background:rgba(255,255,255,0.02);border-radius:10px;padding:1rem;border:1px solid rgba(255,255,255,0.05)">
+        <div style="color:#76b900;font-weight:700;font-size:0.8rem;margin-bottom:0.5rem">📋 HOW TO GET YOUR FREE KEY (2 minutes)</div>
+        <div style="color:#94a3b8;font-size:0.88rem;line-height:1.8">
+        1. Go to <strong style="color:#76b900">build.nvidia.com</strong><br>
+        2. Click "Sign In" → Sign up with Google or email (free)<br>
+        3. Click any model (e.g. Gemma 4 31B IT) → "Get API Key"<br>
+        4. Copy the key (starts with <code style="background:rgba(255,255,255,0.08);padding:1px 6px;border-radius:4px">nvapi-</code>) → paste into sidebar<br>
+        5. Select <strong style="color:#e2e8f0">🟢 NVIDIA Build</strong> provider → pick Gemma 4 → go!
+        </div>
+    </div>
+    <div style="background:rgba(118,185,0,0.06);border-radius:8px;padding:0.8rem;border:1px solid rgba(118,185,0,0.2);font-size:0.82rem;color:#76b900;margin-top:0.8rem">
+    ✅ Best models: Gemma 4 31B IT · Llama 3.3 70B · Nemotron 70B · Llama 3.1 8B · Mistral 7B
     </div>
     </div>""", unsafe_allow_html=True)
 
@@ -948,10 +1057,11 @@ elif page == "🔑 API Guide":
     st.markdown("""<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
         <div class="info-box">
         <strong>🆓 Best Free Setup (Zero Cost):</strong><br><br>
-        1st choice: <strong>🔀 OpenRouter</strong> → Auto Free Router<br>
-        2nd choice: <strong>⚡ Groq</strong> → Llama 3.3 70B (fastest)<br>
-        3rd choice: <strong>🌙 Google Gemini</strong> → Gemini 2.0 Flash<br><br>
-        All three give excellent results for resume analysis — completely free!
+        1st choice: <strong>🟢 NVIDIA Build</strong> → Gemma 4 31B IT (best quality)<br>
+        2nd choice: <strong>🔀 OpenRouter</strong> → Auto Free Router<br>
+        3rd choice: <strong>⚡ Groq</strong> → Llama 3.3 70B (fastest)<br>
+        4th choice: <strong>🌙 Google Gemini</strong> → Gemini 2.0 Flash<br><br>
+        All four give excellent results — completely free!
         </div>
         <div class="info-box">
         <strong>💎 Best Paid Setup (Best Results):</strong><br><br>
@@ -1483,16 +1593,16 @@ In the sidebar: select <strong>🔀 OpenRouter</strong> → keep model as <stron
 ---
 
 ### 🤖 AI Models (30+ total)
-**Free:** Auto Router · Llama 3.3 · DeepSeek R1 · Gemma 3 27B · Qwen3 Coder · OpenAI GPT-OSS 120B · Mistral · NVIDIA Nemotron · and 20+ more
+**Free:** Gemma 4 31B (NVIDIA) · Auto Router · Llama 3.3 · DeepSeek R1 · Gemma 3 27B · Qwen3 Coder · OpenAI GPT-OSS 120B · Mistral · Nemotron · and 25+ more
 
 **Paid:** Claude Sonnet/Opus · GPT-4o · Gemini 2.5 Pro · Grok 4 · DeepSeek R1
 
-Get free key: [openrouter.ai/keys](https://openrouter.ai/keys)
+Get free key: [build.nvidia.com](https://build.nvidia.com) · [openrouter.ai/keys](https://openrouter.ai/keys)
 
 ---
 
 ### 🛠️ Tech Stack
-Python 3.11 · OpenRouter API · SQLite · Streamlit · pdfplumber · Streamlit Cloud
+Python 3.11 · NVIDIA NIM · OpenRouter API · SQLite · Streamlit · pdfplumber · Streamlit Cloud
 
 ---
 

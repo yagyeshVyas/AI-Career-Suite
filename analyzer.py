@@ -1,6 +1,6 @@
 """
 analyzer.py - AI Resume Analysis
-Supports all providers: OpenRouter, OpenAI, Anthropic, Google Gemini,
+Supports all providers: NVIDIA Build, OpenRouter, OpenAI, Anthropic, Google Gemini,
 Groq, DeepSeek, Mistral, Together AI, Perplexity, xAI, Cohere, HuggingFace
 """
 

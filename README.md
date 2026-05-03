@@ -3,7 +3,8 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Python-3.11-blue?style=for-the-badge&logo=python&logoColor=white" />
   <img src="https://img.shields.io/badge/Streamlit-1.32-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white" />
-  <img src="https://img.shields.io/badge/12+_AI_Providers-Supported-8b5cf6?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/13+_AI_Providers-Supported-8b5cf6?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/NVIDIA_NIM-Gemma_4_31B-76b900?style=for-the-badge&logo=nvidia&logoColor=white" />
   <img src="https://img.shields.io/badge/60+_Models-Free_%26_Paid-10b981?style=for-the-badge" />
   <img src="https://img.shields.io/badge/Local_LLM-Ollama_%7C_LM_Studio-f59e0b?style=for-the-badge" />
   <img src="https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge" />
@@ -12,7 +13,7 @@
 <p align="center">
   <strong>5 AI-powered career tools in one app.</strong><br/>
   Resume analysis · Cover letters · Interview prep · Resume rewriting · Progress tracking<br/>
-  Works with 12+ AI providers including free tiers from OpenRouter, Groq, Google Gemini — and local models via Ollama.
+  Works with 13+ AI providers including NVIDIA Build (Gemma 4 31B), OpenRouter, Groq, Google Gemini — and local models via Ollama.
 </p>
 
 <p align="center">
@@ -98,13 +99,14 @@ Track your entire job search across all analyses.
 
 ## 🤖 AI Providers & Models
 
-The app supports **12 AI providers** and **60+ models** via a universal dispatcher (`providers.py`). Switch providers in the sidebar — everything else stays the same.
+The app supports **13 AI providers** and **70+ models** via a universal dispatcher (`providers.py`). Switch providers in the sidebar — everything else stays the same.
 
 ### 🆓 Free Providers — No Credit Card Needed
 
 | Provider | Free Limits | Best Free Model | Get Key |
 |----------|------------|-----------------|---------|
-| 🔀 **OpenRouter** ⭐ | 20 req/min · 200/day | 🎲 Auto Free Router | [openrouter.ai/keys](https://openrouter.ai/keys) |
+| 🟢 **NVIDIA Build** ⭐ | 1000 free credits | Gemma 4 31B IT | [build.nvidia.com](https://build.nvidia.com/explore/discover) |
+| 🔀 **OpenRouter** | 20 req/min · 200/day | 🎲 Auto Free Router | [openrouter.ai/keys](https://openrouter.ai/keys) |
 | ⚡ **Groq** | 30 req/min · 14,400/day | Llama 3.3 70B | [console.groq.com](https://console.groq.com/keys) |
 | 🌙 **Google Gemini** | 15 req/min · 1M tokens/day | Gemini 2.0 Flash | [aistudio.google.com](https://aistudio.google.com/app/apikey) |
 | 🤗 **Hugging Face** | Rate limited | Llama 3.1 8B | [huggingface.co/settings/tokens](https://huggingface.co/settings/tokens) |
@@ -126,7 +128,7 @@ The app supports **12 AI providers** and **60+ models** via a universal dispatch
 
 *\*Per analysis ≈ 2,000 input + 500 output tokens*
 
-> **Best free setup:** OpenRouter (Auto Router) + Groq (Llama 3.3 70B) + Google Gemini (2.0 Flash). Three keys, 10 minutes total, unlimited free analyses.
+> **Best free setup:** NVIDIA Build (Gemma 4 31B) + OpenRouter (Auto Router) + Groq (Llama 3.3 70B). Three keys, 10 minutes total, unlimited free analyses.
 
 ---
 
@@ -247,7 +249,7 @@ The dispatcher handles all provider differences:
 
 | Type | Providers |
 |------|-----------|
-| `openai_compat` | OpenRouter, Groq, DeepSeek, Mistral, Together, Perplexity, xAI, LM Studio |
+| `openai_compat` | OpenRouter, NVIDIA Build, Groq, DeepSeek, Mistral, Together, Perplexity, xAI, LM Studio |
 | `anthropic` | Anthropic Claude (different auth + response schema) |
 | `gemini` | Google Gemini (URL-based key + nested response format) |
 | `cohere` | Cohere (v2 chat endpoint) |
@@ -262,7 +264,7 @@ The dispatcher handles all provider differences:
 |-------|-----------|
 | Language | Python 3.11 |
 | UI Framework | Streamlit 1.32 |
-| AI Providers | OpenRouter · OpenAI · Anthropic · Google Gemini · Groq · DeepSeek · Mistral · Together AI · Perplexity · xAI · Cohere · HuggingFace · Ollama · LM Studio |
+| AI Providers | NVIDIA Build (NIM) · OpenRouter · OpenAI · Anthropic · Google Gemini · Groq · DeepSeek · Mistral · Together AI · Perplexity · xAI · Cohere · HuggingFace · Ollama · LM Studio |
 | Database | SQLite (zero setup, local-only) |
 | PDF Parsing | pdfplumber |
 | Typography | Syne (headers) + DM Sans (body) via Google Fonts |

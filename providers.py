@@ -1,7 +1,7 @@
 """
 providers.py — All AI API Providers
-Supports: OpenRouter, OpenAI, Anthropic, Google Gemini, Groq, Mistral, DeepSeek,
-          Together AI, xAI Grok, Perplexity, Cohere
+Supports: OpenRouter, NVIDIA Build, OpenAI, Anthropic, Google Gemini, Groq, Mistral, DeepSeek,
+          Together AI, xAI Grok, Perplexity, Cohere, HuggingFace, Ollama, LM Studio
 """
 
 import requests
@@ -57,6 +57,27 @@ PROVIDERS = {
             "HTTP-Referer": "https://ai-career-suite.streamlit.app",
             "X-Title": "AI Career Suite"
         }
+    },
+
+    # ═══════════════════════════════════════════
+    # 🟢 NVIDIA BUILD  (NIM — Free API credits)
+    # ═══════════════════════════════════════════
+    "🟢 NVIDIA Build": {
+        "description": "NVIDIA NIM — Gemma 4, Llama, Nemotron. 1000 free credits!",
+        "get_key_url": "https://build.nvidia.com/explore/discover",
+        "free_tier": "✅ 1000 free API credits on signup — No credit card",
+        "endpoint": "https://integrate.api.nvidia.com/v1/chat/completions",
+        "type": "openai_compat",
+        "placeholder": "nvapi-...",
+        "free_models": {
+            "🌟 Gemma 4 31B IT ★ NEW — Frontier Reasoning":        "google/gemma-4-31b-it",
+            "🦙 Llama 3.3 70B — Meta's Best Open":                 "meta/llama-3.3-70b-instruct",
+            "🦙 Llama 3.1 8B — Ultra Fast":                        "meta/llama-3.1-8b-instruct",
+            "🟡 Nemotron 70B — NVIDIA Flagship":                   "nvidia/llama-3.1-nemotron-70b-instruct",
+            "⚡ Mistral 7B — Fast & Light":                         "mistralai/mistral-7b-instruct-v0.3",
+        },
+        "paid_models": {},
+        "headers_extra": {}
     },
 
     # ═══════════════════════════════════════════
@@ -357,7 +378,7 @@ def call_api(provider_name: str, api_key: str, model_id: str,
     p = PROVIDERS[provider_name]
     ptype = p["type"]
 
-    # ── OpenAI-Compatible (OpenRouter, Groq, DeepSeek, Mistral, Together, Perplexity, xAI) ──
+    # ── OpenAI-Compatible (OpenRouter, NVIDIA, Groq, DeepSeek, Mistral, Together, Perplexity, xAI) ──
     if ptype == "openai_compat":
         headers = {
             "Authorization": f"Bearer {api_key}",
@@ -531,7 +552,7 @@ def _check_errors(r, provider_name: str):
         raise ValueError(
             f"❌ No credits remaining for {provider_name}.\n\n"
             "Options:\n"
-            "• Switch to a FREE provider — OpenRouter, Groq, or Google Gemini\n"
+            "• Switch to a FREE provider — OpenRouter, Groq, NVIDIA Build, or Google Gemini\n"
             "• Add more credits at your provider dashboard\n\n"
             f"💳 Add credits at: {key_url}"
         )
@@ -562,8 +583,9 @@ def _check_errors(r, provider_name: str):
                 "① Wait 60 seconds and try again\n"
                 "② Switch model to '🎲 Auto Free Router' (spreads load automatically)\n"
                 "③ Switch provider to ⚡ Groq (30 req/min free, much higher limits)\n"
-                "④ Switch provider to 🌙 Google Gemini (1 million tokens/day free!)\n\n"
-                "💡 Best practice: use Groq for speed, OpenRouter as backup"
+                "④ Switch provider to 🟢 NVIDIA Build (1000 free credits!)\n"
+                "⑤ Switch provider to 🌙 Google Gemini (1 million tokens/day free!)\n\n"
+                "💡 Best practice: use Groq for speed, NVIDIA for quality, OpenRouter as backup"
             )
         else:
             raise ValueError(
@@ -572,7 +594,7 @@ def _check_errors(r, provider_name: str):
                 "Quick fixes:\n"
                 "① Wait 60 seconds and retry\n"
                 "② Switch to a different model in sidebar\n"
-                "③ Switch to ⚡ Groq or 🌙 Google Gemini (both have generous free limits)"
+                "③ Switch to ⚡ Groq, 🟢 NVIDIA Build, or 🌙 Google Gemini (all have generous free limits)"
             )
 
     elif r.status_code == 500:
