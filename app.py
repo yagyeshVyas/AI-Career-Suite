@@ -40,24 +40,61 @@ st.markdown("""
 }
 
 /* ── Animations ── */
-@keyframes aurora { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
-@keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
-@keyframes pulse-glow { 0%,100%{box-shadow:0 0 20px rgba(139,92,246,0.15)} 50%{box-shadow:0 0 40px rgba(139,92,246,0.3)} }
-@keyframes shimmer { 0%{background-position:-1000px 0} 100%{background-position:1000px 0} }
-@keyframes gradient-shift { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
-@keyframes spin-slow { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
-@keyframes fade-in { 0%{opacity:0;transform:translateY(25px) rotateX(-5deg)} 100%{opacity:1;transform:translateY(0) rotateX(0)} }
-@keyframes border-glow { 0%,100%{border-color:rgba(139,92,246,0.2)} 50%{border-color:rgba(139,92,246,0.5)} }
-@keyframes float-3d { 0%{transform:translateZ(0) translateY(0)} 50%{transform:translateZ(30px) translateY(-10px)} 100%{transform:translateZ(0) translateY(0)} }
-
-.stApp { background:var(--bg) !important; font-family:var(--font-b) !important; perspective:1200px; }
-[data-testid="stSidebar"] {
-    background:linear-gradient(180deg,var(--bg2) 0%,#0d0820 100%) !important;
-    border-right:1px solid var(--border) !important;
-    backdrop-filter:blur(25px) !important;
+/* ── 3D Mesh Gradient Background ── */
+@keyframes mesh {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
 }
+
+.stApp {
+    background: radial-gradient(circle at 50% 50%, #0d0d2b 0%, #050510 100%) !important;
+    font-family: var(--font-b) !important;
+    perspective: 1200px;
+    overflow-x: hidden;
+}
+
+.stApp::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: 
+        radial-gradient(at 0% 0%, rgba(139, 92, 246, 0.08) 0, transparent 50%),
+        radial-gradient(at 50% 0%, rgba(6, 182, 212, 0.05) 0, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(236, 72, 153, 0.05) 0, transparent 50%);
+    z-index: -1;
+    filter: blur(80px);
+    animation: mesh 20s ease infinite;
+    background-size: 200% 200%;
+}
+
+[data-testid="stSidebar"] {
+    background: rgba(10, 10, 26, 0.7) !important;
+    border-right: 1px solid var(--border) !important;
+    backdrop-filter: blur(30px) !important;
+}
+
+/* ── Floating 3D Grid ── */
+@keyframes grid-float {
+    from { transform: perspective(1000px) rotateX(60deg) translateY(0); }
+    to { transform: perspective(1000px) rotateX(60deg) translateY(40px); }
+}
+.stApp::after {
+    content: "";
+    position: fixed;
+    top: 50%; left: -50%;
+    width: 200%; height: 200%;
+    background-image: 
+        linear-gradient(rgba(139, 92, 246, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(139, 92, 246, 0.05) 1px, transparent 1px);
+    background-size: 80px 80px;
+    transform: perspective(1000px) rotateX(60deg);
+    z-index: -2;
+    animation: grid-float 5s linear infinite;
+}
+
 [data-testid="stAppViewContainer"] > .main .block-container { padding:2rem 3rem !important; max-width:1450px !important; transform-style:preserve-3d; }
-h1,h2,h3 { font-family:var(--font-h) !important; color:var(--text) !important; text-shadow:0 10px 20px rgba(0,0,0,0.3); }
+h1,h2,h3 { font-family:var(--font-h) !important; color:var(--text) !important; text-shadow:0 15px 30px rgba(0,0,0,0.5); }
 
 /* ── Hero — 3D Parallax Style ── */
 .hero {
@@ -321,7 +358,8 @@ with st.sidebar:
     page = st.radio("**📌 Navigate**", [
         "🎯 Analyzer", "✉️ Cover Letter",
         "🎤 Interview Prep", "📝 Resume Builder",
-        "📊 Dashboard", "🤖 AI Copilot", "🔑 API Guide", "📖 How to Use", "ℹ️ About"
+        "🔍 Job Discovery", "🤖 AI Copilot",
+        "📊 Dashboard", "🔑 API Guide", "📖 How to Use", "ℹ️ About"
     ], label_visibility="collapsed")
     st.markdown("---")
     st.markdown("<div style='font-size:0.72rem;color:#475569;text-align:center;line-height:1.8'>Built by <b style='color:#7c3aed'>Yagyesh Vyas</b><br>Python · 10+ AI APIs · SQLite · Streamlit</div>", unsafe_allow_html=True)
@@ -1265,6 +1303,55 @@ Be specific with resource links (Coursera, YouTube, free courses). Make it actio
                 st.download_button("⬇️ Download Export File", data=export_text, file_name="career_suite_export.txt", mime="text/plain", use_container_width=True, key="dl_export")
 
 
+# ════════════════════════════════════════════════════════
+# 🔍 JOB DISCOVERY
+# ════════════════════════════════════════════════════════
+elif page == "🔍 Job Discovery":
+    st.markdown("""<div class="hero"><div class="hero-badge">Smart Search · Portfolio matching · Market Data</div>
+    <h1>Job Discovery Engine</h1>
+    <p>Upload your resume and let AI find the best roles, companies, and direct search links for you instantly.</p></div>""", unsafe_allow_html=True)
+    
+    jd_r_type = st.radio("Resume Source:", ["📎 Upload PDF", "📋 Paste Text"], horizontal=True, key="jd_r_type")
+    jd_resume = ""
+    if jd_r_type == "📎 Upload PDF":
+        up = st.file_uploader("", type=["pdf"], label_visibility="collapsed", key="jd_pdf")
+        if up: jd_resume = extract_text_from_pdf(up)
+    else:
+        jd_resume = st.text_area("Paste Resume", height=200, key="jd_paste")
+
+    st.markdown('<div class="section-title">📍 Location (Optional)</div>', unsafe_allow_html=True)
+    jd_loc = st.text_input("", placeholder="e.g. Remote, New York, Bangalore", key="jd_loc", label_visibility="collapsed")
+
+    if st.button("🔍 Discover My Next Role", type="primary", use_container_width=True, disabled=not api_key):
+        if not jd_resume.strip():
+            st.error("❌ Please provide your resume first.")
+        else:
+            with st.spinner("🔍 Scanning global job markets and analyzing your fit..."):
+                try:
+                    discovery = ai_call(f"""You are a career growth strategist. Analyze this resume and help the user find jobs.
+                    
+RESUME: {jd_resume}
+LOCATION PREFERENCE: {jd_loc or 'Global/Remote'}
+
+Provide:
+1. 🎯 RECOMMENDED ROLES: Top 3 job titles they should hunt for (most qualified).
+2. 🏢 TARGET COMPANIES: 5 specific companies (MNC + Startups) that hire for these roles and would value this background.
+3. 🗺️ SMART SEARCH STRATEGY: One sentence on how to filter results for maximum success.
+4. 🔗 DIRECT SEARCH LINKS: For each recommended role, provide a valid URL for LinkedIn and Indeed searches.
+   Format as: [Role Name] - [LinkedIn Search Link] | [Indeed Search Link]
+5. 💹 MARKET SALARY: Estimated range for these roles based on the experience level in resume.
+6. ✨ THE "HIDDEN" PATH: One alternative career path where these skills transition perfectly.
+
+Format with beautiful markdown, bold headers, and emojis.""", temperature=0.6, max_tokens=2000)
+                    
+                    st.markdown('<div class="section-title">📊 Your Career Roadmap</div>', unsafe_allow_html=True)
+                    st.markdown(f'<div class="resume-output">{discovery}</div>', unsafe_allow_html=True)
+                    
+                    # Also suggest a copilot follow-up
+                    st.info("💡 Pro Tip: Copy one of these roles and head to the **🤖 AI Copilot** to practice a mock interview for it!")
+                    
+                except Exception as e:
+                    st.error(f"❌ {e}")
 # ════════════════════════════════════════════════════════
 # 🤖 AI COPILOT
 # ════════════════════════════════════════════════════════
