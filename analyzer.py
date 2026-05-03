@@ -8,7 +8,7 @@ import re
 import json
 import pdfplumber
 from io import BytesIO
-from providers import call_api, PROVIDERS, get_all_models_for_provider
+from providers import call_api, PROVIDERS
 
 
 # ── Keep these for backward compat with app.py imports ──

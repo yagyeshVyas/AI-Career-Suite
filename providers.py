@@ -5,7 +5,6 @@ Supports: OpenRouter, NVIDIA Build, OpenAI, Anthropic, Google Gemini, Groq, Mist
 """
 
 import requests
-import json
 
 # ─────────────────────────────────────────────────────────
 # PROVIDER DEFINITIONS
@@ -470,7 +469,7 @@ def _call_ollama(endpoint: str, model_id: str, prompt: str,
     """Call Ollama local server — handles streaming and non-streaming."""
     # Test if Ollama is running first
     try:
-        test = requests.get("http://localhost:11434/api/tags", timeout=3)
+        requests.get("http://localhost:11434/api/tags", timeout=3)
     except requests.exceptions.ConnectionError:
         raise ValueError(
             "❌ Ollama is not running on your machine!\n\n"

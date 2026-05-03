@@ -5,12 +5,10 @@ Author: Yagyesh Vyas | github.com/yagyeshVyas
 
 import streamlit as st
 import pandas as pd
-import requests
 from providers import PROVIDERS, call_api
 from analyzer import (
     extract_text_from_pdf, analyze_resume,
-    get_score_color, get_score_label,
-    FREE_MODELS, PAID_MODELS, get_model_id
+    get_score_label
 )
 from database import (
     init_db, save_analysis, get_all_analyses,
@@ -370,8 +368,10 @@ with st.sidebar:
 
 # ── HELPERS ──────────────────────────────────────────────
 def chips(items, cls="chip-green"):
-    if not items: return "<span style='color:#475569;font-style:italic;font-size:0.82rem'>None found</span>"
-    return '<div class="chips">'+"".join(f'<span class="chip {cls}">{i}</span>' for i in items)+'</div>'
+    if not items:
+        return "<span style='color:#475569;font-style:italic;font-size:0.82rem'>None found</span>"
+    return '<div class="chips">' + "".join(f'<span class="chip {cls}">{i}</span>' for i in items) + '</div>'
+
 
 def score_card(score, title):
     cls = "green" if score >= 75 else ("amber" if score >= 50 else "red")
@@ -382,6 +382,7 @@ def score_card(score, title):
         <span class="score-badge {cls}">{get_score_label(score)}</span>
     </div>""", unsafe_allow_html=True)
     st.progress(score / 100)
+
 
 def ai_call(prompt, temperature=0.7, max_tokens=2500):
     if not api_key:
@@ -401,37 +402,45 @@ if page == "🎯 Analyzer":
     <h1>AI Career Suite</h1>
     <p>Upload your resume, paste any job description — get a senior recruiter's verdict with competitive positioning in seconds</p></div>""", unsafe_allow_html=True)
 
-    if not api_key: st.warning("⚠️ Enter your free OpenRouter API key in the sidebar → openrouter.ai/keys")
+    if not api_key:
+        st.warning("⚠️ Enter your free OpenRouter API key in the sidebar → openrouter.ai/keys")
 
     c1, c2 = st.columns(2, gap="large")
     with c1:
         st.markdown('<div class="section-title">📄 Your Resume</div>', unsafe_allow_html=True)
         rtype = st.radio("", ["📎 Upload PDF", "📋 Paste Text"], horizontal=True, label_visibility="collapsed", key="an_rt")
-        resume_text = ""; resume_file = ""
+        resume_text = ""
+        resume_file = ""
         if rtype == "📎 Upload PDF":
             up = st.file_uploader("", type=["pdf"], label_visibility="collapsed", key="an_pdf")
             if up:
                 try:
-                    resume_text = extract_text_from_pdf(up); resume_file = up.name
+                    resume_text = extract_text_from_pdf(up)
+                    resume_file = up.name
                     st.success(f"✅ Extracted {len(resume_text.split())} words from **{up.name}**")
-                    with st.expander("👁 Preview"): st.text(resume_text[:600]+"..." if len(resume_text)>600 else resume_text)
-                except ValueError as e: st.error(str(e))
+                    with st.expander("👁 Preview"):
+                        st.text(resume_text[:600] + "..." if len(resume_text) > 600 else resume_text)
+                except ValueError as e:
+                    st.error(str(e))
         else:
             resume_text = st.text_area("", height=220, placeholder="Paste your full resume text here...", label_visibility="collapsed", key="an_paste")
             resume_file = "pasted.txt"
     with c2:
         st.markdown('<div class="section-title">💼 Job Details</div>', unsafe_allow_html=True)
         jt = st.text_input("Job Title", placeholder="e.g. Data Engineer, AI Engineer")
-        co = st.text_input("Company",   placeholder="e.g. Google, Amazon, TCS")
+        co = st.text_input("Company", placeholder="e.g. Google, Amazon, TCS")
         jd = st.text_area("Job Description", height=180, placeholder="Paste the full job posting here — requirements, responsibilities, qualifications...")
 
     st.markdown("")
     if st.button("🚀 Analyze My Resume", type="primary", use_container_width=True, disabled=not api_key):
         if not api_key:
             st.error("❌ No API key! Paste your key in the sidebar ← first.")
-        elif not resume_text.strip(): st.error("❌ Please provide your resume.")
-        elif not jd.strip():        st.error("❌ Please paste the job description.")
-        elif len(jd) < 50:          st.error("❌ Job description too short — paste the full posting.")
+        elif not resume_text.strip():
+            st.error("❌ Please provide your resume.")
+        elif not jd.strip():
+            st.error("❌ Please paste the job description.")
+        elif len(jd) < 50:
+            st.error("❌ Job description too short — paste the full posting.")
         else:
             with st.spinner("🤖 Analyzing with senior recruiter-level AI..."):
                 try:
@@ -440,41 +449,55 @@ if page == "🎯 Analyzer":
                     save_analysis(result)
                     st.session_state["last_result"] = result
                     st.success("✅ Analysis complete!")
-                except ValueError as e: st.error(f"❌ {e}")
+                except ValueError as e:
+                    st.error(f"❌ {e}")
 
     if "last_result" in st.session_state:
         r = st.session_state["last_result"]
         st.markdown("---")
-        if r.get("job_title"): st.markdown(f"<h3 style='color:#e2e8f0;font-family:Syne'>Results — {r['job_title']}{' @ '+r['company_name'] if r.get('company_name') else ''}</h3>", unsafe_allow_html=True)
-        s1,s2,s3 = st.columns(3)
-        with s1: score_card(r["ats_score"],  "🎯 ATS Score")
-        with s2: score_card(r["match_score"],"💼 Job Match")
-        with s3: score_card(r.get("hire_probability",0),"📞 Interview Chance")
+        if r.get("job_title"):
+            st.markdown(f"<h3 style='color:#e2e8f0;font-family:Syne'>Results — {r['job_title']}{' @ '+r['company_name'] if r.get('company_name') else ''}</h3>", unsafe_allow_html=True)
+        s1, s2, s3 = st.columns(3)
+        with s1:
+            score_card(r["ats_score"], "🎯 ATS Score")
+        with s2:
+            score_card(r["match_score"], "💼 Job Match")
+        with s3:
+            score_card(r.get("hire_probability", 0), "📞 Interview Chance")
         st.markdown(f'<div class="summary-box">🤖 <strong>AI Verdict:</strong> {r["overall_summary"]}</div>', unsafe_allow_html=True)
-        col1,col2 = st.columns(2, gap="large")
+        col1, col2 = st.columns(2, gap="large")
         with col1:
             st.markdown('<div class="section-title">✅ Matched Skills</div>', unsafe_allow_html=True)
-            st.markdown(chips(r["matched_skills"],"chip-green"), unsafe_allow_html=True)
+            st.markdown(chips(r["matched_skills"], "chip-green"), unsafe_allow_html=True)
             st.markdown('<div class="section-title">💪 Strengths</div>', unsafe_allow_html=True)
-            for s in r.get("strengths",[]): st.markdown(f'<div class="info-box">✅ {s}</div>', unsafe_allow_html=True)
+            for s in r.get("strengths", []):
+                st.markdown(f'<div class="info-box">✅ {s}</div>', unsafe_allow_html=True)
         with col2:
             st.markdown('<div class="section-title">❌ Missing Skills</div>', unsafe_allow_html=True)
-            st.markdown(chips(r["missing_skills"],"chip-red"), unsafe_allow_html=True)
+            st.markdown(chips(r["missing_skills"], "chip-red"), unsafe_allow_html=True)
             st.markdown('<div class="section-title">🔧 Improvements</div>', unsafe_allow_html=True)
-            for tip in r.get("improvements",[]): st.markdown(f'<div class="info-box">💡 {tip}</div>', unsafe_allow_html=True)
+            for tip in r.get("improvements", []):
+                st.markdown(f'<div class="info-box">💡 {tip}</div>', unsafe_allow_html=True)
         st.markdown('<div class="section-title">🔑 ATS Keywords to Add</div>', unsafe_allow_html=True)
-        st.markdown(chips(r.get("keyword_suggestions",[]),"chip-blue"), unsafe_allow_html=True)
+        st.markdown(chips(r.get("keyword_suggestions", []), "chip-blue"), unsafe_allow_html=True)
         if r.get("quick_wins"):
             st.markdown('<div class="section-title">⚡ Quick Wins — Fix in 10 Minutes</div>', unsafe_allow_html=True)
-            for w in r["quick_wins"]: st.markdown(f'<div class="win-box">⚡ {w}</div>', unsafe_allow_html=True)
+            for w in r["quick_wins"]:
+                st.markdown(f'<div class="win-box">⚡ {w}</div>', unsafe_allow_html=True)
         if r.get("red_flags"):
             st.markdown('<div class="section-title">🚨 Recruiter Red Flags</div>', unsafe_allow_html=True)
-            for f in r["red_flags"]: st.markdown(f'<div class="danger-box">🚨 {f}</div>', unsafe_allow_html=True)
-        if r.get("salary_insight"): st.markdown(f'<div class="success-box">💰 <strong>Salary Insight:</strong> {r["salary_insight"]}</div>', unsafe_allow_html=True)
+            for f in r["red_flags"]:
+                st.markdown(f'<div class="danger-box">🚨 {f}</div>', unsafe_allow_html=True)
+        if r.get("salary_insight"):
+            st.markdown(f'<div class="success-box">💰 <strong>Salary Insight:</strong> {r["salary_insight"]}</div>', unsafe_allow_html=True)
         with st.expander("📋 Experience & Education Details"):
-            e1,e2 = st.columns(2)
-            with e1: st.markdown("**Experience Gap**"); st.info(r.get("experience_gap","N/A"))
-            with e2: st.markdown("**Education Match**"); st.info(r.get("education_match","N/A"))
+            e1, e2 = st.columns(2)
+            with e1:
+                st.markdown("**Experience Gap**")
+                st.info(r.get("experience_gap", "N/A"))
+            with e2:
+                st.markdown("**Education Match**")
+                st.info(r.get("education_match", "N/A"))
         st.markdown("---")
         report = f"""AI RESUME ANALYSIS REPORT\n{'='*50}
 Job: {r.get('job_title','N/A')} @ {r.get('company_name','N/A')}
@@ -520,7 +543,8 @@ Provide:
 Be specific, actionable, and reference actual resume content.""", temperature=0.5, max_tokens=1500)
                         st.markdown(f'<div class="resume-output">{comp}</div>', unsafe_allow_html=True)
                         st.download_button("⬇️ Download Competitive Analysis", data=comp, file_name="competitive_analysis.txt", mime="text/plain", use_container_width=True, key="dl_comp")
-                    except Exception as e: st.error(f"❌ {e}")
+                    except Exception as e:
+                        st.error(f"❌ {e}")
 
         with da2:
             if st.button("📝 Section-by-Section Grade", use_container_width=True, key="deep_grade", disabled=not api_key):
@@ -547,7 +571,8 @@ For each section that scores below B, provide a SPECIFIC rewritten example that 
 End with an OVERALL GPA across all sections.""", temperature=0.4, max_tokens=2500)
                         st.markdown(f'<div class="resume-output">{grade}</div>', unsafe_allow_html=True)
                         st.download_button("⬇️ Download Section Grades", data=grade, file_name="section_grades.txt", mime="text/plain", use_container_width=True, key="dl_grade")
-                    except Exception as e: st.error(f"❌ {e}")
+                    except Exception as e:
+                        st.error(f"❌ {e}")
 
         with da3:
             if st.button("✨ AI Rewrite Suggestions", use_container_width=True, key="deep_rewrite", disabled=not api_key):
@@ -571,7 +596,8 @@ Provide:
 Make every word count. Use exact keywords from the job description.""", temperature=0.4, max_tokens=2000)
                         st.markdown(f'<div class="resume-output">{rewrite}</div>', unsafe_allow_html=True)
                         st.download_button("⬇️ Download Rewrite Suggestions", data=rewrite, file_name="rewrite_suggestions.txt", mime="text/plain", use_container_width=True, key="dl_rewrite")
-                    except Exception as e: st.error(f"❌ {e}")
+                    except Exception as e:
+                        st.error(f"❌ {e}")
 
 
 # ════════════════════════════════════════════════════════
@@ -581,27 +607,32 @@ elif page == "✉️ Cover Letter":
     st.markdown("""<div class="hero"><div class="hero-badge">Cover Letter · Follow-Up Email · Thank You Note · LinkedIn Message</div>
     <h1>Smart Letter Generator</h1>
     <p>Generate any professional document — cover letters, follow-up emails, thank-you notes, and LinkedIn outreach messages</p></div>""", unsafe_allow_html=True)
-    if not api_key: st.warning("⚠️ Enter your free API key in the sidebar")
+    if not api_key:
+        st.warning("⚠️ Enter your free API key in the sidebar")
 
     # ── Document Type Selector ──
     st.markdown('<div class="section-title">📋 Document Type</div>', unsafe_allow_html=True)
     doc_type = st.radio("", ["✉️ Cover Letter", "📧 Follow-Up Email", "🙏 Thank You Note", "💼 LinkedIn Message", "❄️ Cold Outreach Email"], horizontal=True, label_visibility="collapsed", key="doc_type")
 
-    c1,c2 = st.columns(2, gap="large")
+    c1, c2 = st.columns(2, gap="large")
     with c1:
         st.markdown('<div class="section-title">📄 Your Resume</div>', unsafe_allow_html=True)
-        ct = st.radio("", ["📎 Upload PDF","📋 Paste Text"], horizontal=True, label_visibility="collapsed", key="cl_rt")
+        ct = st.radio("", ["📎 Upload PDF", "📋 Paste Text"], horizontal=True, label_visibility="collapsed", key="cl_rt")
         cl_r = ""
         if ct == "📎 Upload PDF":
             up = st.file_uploader("", type=["pdf"], label_visibility="collapsed", key="cl_pdf")
             if up:
-                try: cl_r = extract_text_from_pdf(up); st.success(f"✅ {len(cl_r.split())} words extracted")
-                except ValueError as e: st.error(str(e))
-        else: cl_r = st.text_area("", height=200, placeholder="Paste resume...", label_visibility="collapsed", key="cl_paste")
+                try:
+                    cl_r = extract_text_from_pdf(up)
+                    st.success(f"✅ {len(cl_r.split())} words extracted")
+                except ValueError as e:
+                    st.error(str(e))
+        else:
+            cl_r = st.text_area("", height=200, placeholder="Paste resume...", label_visibility="collapsed", key="cl_paste")
     with c2:
         st.markdown('<div class="section-title">💼 Job Details</div>', unsafe_allow_html=True)
-        cl_jt = st.text_input("Job Title",   placeholder="e.g. Data Engineer", key="cl_jt")
-        cl_co = st.text_input("Company",     placeholder="e.g. Google", key="cl_co")
+        cl_jt = st.text_input("Job Title", placeholder="e.g. Data Engineer", key="cl_jt")
+        cl_co = st.text_input("Company", placeholder="e.g. Google", key="cl_co")
         cl_hm = st.text_input("Hiring Manager (optional)", placeholder="e.g. Sarah Johnson", key="cl_hm")
         cl_jd = st.text_area("Job Description", height=140, key="cl_jd", placeholder="Paste job posting here...")
 
@@ -619,13 +650,15 @@ elif page == "✉️ Cover Letter":
         li_type = st.radio("", ["Connection request to recruiter", "InMail to hiring manager", "Referral request to employee", "Networking message"], horizontal=True, label_visibility="collapsed", key="li_type")
 
     st.markdown('<div class="section-title">🎨 Tone</div>', unsafe_allow_html=True)
-    tone = st.select_slider("", ["Very Formal","Professional","Friendly & Professional","Enthusiastic"], value="Professional", label_visibility="collapsed")
+    tone = st.select_slider("", ["Very Formal", "Professional", "Friendly & Professional", "Enthusiastic"], value="Professional", label_visibility="collapsed")
 
     btn_label = {"✉️ Cover Letter": "✉️ Generate Cover Letter", "📧 Follow-Up Email": "📧 Generate Follow-Up Email", "🙏 Thank You Note": "🙏 Generate Thank You Note", "💼 LinkedIn Message": "💼 Generate LinkedIn Message", "❄️ Cold Outreach Email": "❄️ Generate Cold Outreach"}
 
     if st.button(btn_label.get(doc_type, "✉️ Generate"), type="primary", use_container_width=True, disabled=not api_key):
-        if not cl_r.strip(): st.error("❌ Please provide your resume.")
-        elif not cl_jd.strip() and doc_type == "✉️ Cover Letter": st.error("❌ Please paste the job description.")
+        if not cl_r.strip():
+            st.error("❌ Please provide your resume.")
+        elif not cl_jd.strip() and doc_type == "✉️ Cover Letter":
+            st.error("❌ Please paste the job description.")
         else:
             # Build prompt based on doc type
             if doc_type == "✉️ Cover Letter":
@@ -670,7 +703,8 @@ Rules: Catchy subject line. Under 120 words body. Lead with value (what you can 
                     fname = doc_type.split(" ", 1)[1].lower().replace(" ", "_")
                     st.download_button(f"⬇️ Download {doc_type.split(' ', 1)[1]}", data=letter, file_name=f"{fname}_{(cl_co or 'company').replace(' ','_')}.txt", mime="text/plain", use_container_width=True)
                     st.info("💡 Always personalize the output before sending — add a specific detail about the company or person.")
-                except Exception as e: st.error(f"❌ {e}")
+                except Exception as e:
+                    st.error(f"❌ {e}")
 
 
 # ════════════════════════════════════════════════════════
@@ -680,26 +714,31 @@ elif page == "🎤 Interview Prep":
     st.markdown("""<div class="hero"><div class="hero-badge">Questions · STAR Stories · Salary Negotiation · Difficulty Levels</div>
     <h1>Interview Prep Suite</h1>
     <p>AI-powered interview preparation — questions, STAR story generator, and salary negotiation coaching tailored to YOUR resume</p></div>""", unsafe_allow_html=True)
-    if not api_key: st.warning("⚠️ Enter your free API key in the sidebar")
+    if not api_key:
+        st.warning("⚠️ Enter your free API key in the sidebar")
 
     # ── Mode Selector ──
     ip_mode = st.radio("", ["❓ Interview Questions", "⭐ STAR Story Generator", "💰 Salary Negotiation Prep"], horizontal=True, label_visibility="collapsed", key="ip_mode")
 
-    c1,c2 = st.columns(2, gap="large")
+    c1, c2 = st.columns(2, gap="large")
     with c1:
         st.markdown('<div class="section-title">📄 Your Resume</div>', unsafe_allow_html=True)
-        ipt = st.radio("", ["📎 Upload PDF","📋 Paste Text"], horizontal=True, label_visibility="collapsed", key="ip_rt")
+        ipt = st.radio("", ["📎 Upload PDF", "📋 Paste Text"], horizontal=True, label_visibility="collapsed", key="ip_rt")
         ip_r = ""
         if ipt == "📎 Upload PDF":
             up = st.file_uploader("", type=["pdf"], label_visibility="collapsed", key="ip_pdf")
             if up:
-                try: ip_r = extract_text_from_pdf(up); st.success(f"✅ {len(ip_r.split())} words extracted")
-                except ValueError as e: st.error(str(e))
-        else: ip_r = st.text_area("", height=200, placeholder="Paste resume...", label_visibility="collapsed", key="ip_paste")
+                try:
+                    ip_r = extract_text_from_pdf(up)
+                    st.success(f"✅ {len(ip_r.split())} words extracted")
+                except ValueError as e:
+                    st.error(str(e))
+        else:
+            ip_r = st.text_area("", height=200, placeholder="Paste resume...", label_visibility="collapsed", key="ip_paste")
     with c2:
         st.markdown('<div class="section-title">💼 Job Details</div>', unsafe_allow_html=True)
         ip_jt = st.text_input("Job Title", placeholder="e.g. Data Engineer", key="ip_jt")
-        ip_co = st.text_input("Company",   placeholder="e.g. TCS, Google",   key="ip_co")
+        ip_co = st.text_input("Company", placeholder="e.g. TCS, Google", key="ip_co")
         ip_jd = st.text_area("Job Description", height=140, key="ip_jd", placeholder="Paste job posting here...")
 
     if ip_mode == "❓ Interview Questions":
@@ -708,18 +747,24 @@ elif page == "🎤 Interview Prep":
         with diff_col:
             difficulty = st.radio("**Difficulty**", ["🟢 Entry Level", "🟡 Mid Level", "🔴 Senior Level"], key="ip_diff")
         with cat_col:
-            q1,q2,q3,q4 = st.columns(4)
-            with q1: qt = st.checkbox("🔧 Technical",  value=True)
-            with q2: qb = st.checkbox("🧠 Behavioral", value=True)
-            with q3: qs = st.checkbox("💡 Situational",value=True)
-            with q4: qf = st.checkbox("🏢 Company Fit",value=True)
+            q1, q2, q3, q4 = st.columns(4)
+            with q1:
+                qt = st.checkbox("🔧 Technical", value=True)
+            with q2:
+                qb = st.checkbox("🧠 Behavioral", value=True)
+            with q3:
+                qs = st.checkbox("💡 Situational", value=True)
+            with q4:
+                qf = st.checkbox("🏢 Company Fit", value=True)
         nq = st.slider("Questions per category", 2, 5, 3)
         if st.button("🎤 Generate Interview Questions", type="primary", use_container_width=True, disabled=not api_key):
-            if not ip_r.strip(): st.error("❌ Please provide your resume.")
-            elif not ip_jd.strip(): st.error("❌ Please paste the job description.")
+            if not ip_r.strip():
+                st.error("❌ Please provide your resume.")
+            elif not ip_jd.strip():
+                st.error("❌ Please paste the job description.")
             else:
                 diff_text = difficulty.split(" ", 1)[1]
-                types = [t for t, c in [("Technical (role-specific skills, tools, concepts)",qt), ("Behavioral (STAR format, past experiences)",qb), ("Situational (hypothetical scenarios)",qs), ("Company Fit (culture, motivation, goals)",qf)] if c]
+                types = [t for t, c in [("Technical (role-specific skills, tools, concepts)", qt), ("Behavioral (STAR format, past experiences)", qb), ("Situational (hypothetical scenarios)", qs), ("Company Fit (culture, motivation, goals)", qf)] if c]
                 with st.spinner("🎤 Generating your personalized interview guide..."):
                     try:
                         guide = ai_call(f"""You are a senior interviewer at a top MNC with 15 years hiring for {ip_jt or 'tech'} roles.
@@ -734,13 +779,15 @@ Reference actual projects/skills from THEIR resume. Format with clear headers an
                         st.markdown(f'<div class="resume-output">{guide}</div>', unsafe_allow_html=True)
                         st.download_button("⬇️ Download Interview Guide", data=guide, file_name=f"interview_{(ip_jt or 'prep').replace(' ','_')}.txt", mime="text/plain", use_container_width=True)
                         st.info("💡 Practice each answer out loud 3 times. Record yourself — it works!")
-                    except Exception as e: st.error(f"❌ {e}")
+                    except Exception as e:
+                        st.error(f"❌ {e}")
 
     elif ip_mode == "⭐ STAR Story Generator":
         st.markdown("""<div class="info-box">⭐ <strong>STAR Method:</strong> Situation → Task → Action → Result. This generator creates polished STAR stories from your actual resume experiences — ready to use in behavioral interviews.</div>""", unsafe_allow_html=True)
         star_count = st.slider("Number of STAR stories to generate", 3, 8, 5, key="star_count")
         if st.button("⭐ Generate STAR Stories", type="primary", use_container_width=True, disabled=not api_key):
-            if not ip_r.strip(): st.error("❌ Please provide your resume.")
+            if not ip_r.strip():
+                st.error("❌ Please provide your resume.")
             else:
                 with st.spinner("⭐ Crafting your STAR stories..."):
                     try:
@@ -769,7 +816,8 @@ Make stories feel authentic and conversational, not robotic.""", temperature=0.6
                         st.markdown(f'<div class="resume-output">{stars}</div>', unsafe_allow_html=True)
                         st.download_button("⬇️ Download STAR Stories", data=stars, file_name="star_stories.txt", mime="text/plain", use_container_width=True)
                         st.info("💡 Memorize these stories loosely — don't recite them word-for-word. Practice telling each one in under 2 minutes.")
-                    except Exception as e: st.error(f"❌ {e}")
+                    except Exception as e:
+                        st.error(f"❌ {e}")
 
     elif ip_mode == "💰 Salary Negotiation Prep":
         st.markdown("""<div class="info-box">💰 <strong>Salary Negotiation:</strong> AI will analyze your resume, the target role, and current market data to create a personalized negotiation strategy with scripts you can use word-for-word.</div>""", unsafe_allow_html=True)
@@ -779,7 +827,8 @@ Make stories feel authentic and conversational, not robotic.""", temperature=0.6
         with sal_col2:
             target_sal = st.text_input("Target Salary (optional)", placeholder="e.g. $120,000 or ₹18 LPA", key="tgt_sal")
         if st.button("💰 Generate Negotiation Strategy", type="primary", use_container_width=True, disabled=not api_key):
-            if not ip_r.strip(): st.error("❌ Please provide your resume.")
+            if not ip_r.strip():
+                st.error("❌ Please provide your resume.")
             else:
                 with st.spinner("💰 Building your negotiation strategy..."):
                     try:
@@ -820,7 +869,8 @@ Be specific with numbers. Use the resume's actual achievements as leverage.""", 
                         st.markdown(f'<div class="resume-output">{neg}</div>', unsafe_allow_html=True)
                         st.download_button("⬇️ Download Negotiation Strategy", data=neg, file_name="salary_negotiation.txt", mime="text/plain", use_container_width=True)
                         st.info("💡 Never give your number first. Always let them make the first offer, then negotiate up using these scripts.")
-                    except Exception as e: st.error(f"❌ {e}")
+                    except Exception as e:
+                        st.error(f"❌ {e}")
 
 
 # ════════════════════════════════════════════════════════
@@ -830,7 +880,8 @@ elif page == "📝 Resume Builder":
     st.markdown("""<div class="hero"><div class="hero-badge">Build Fresh · Rewrite for Job · LinkedIn Optimizer · 100% ATS</div>
     <h1>AI Resume & LinkedIn Builder</h1>
     <p>Build a perfect resume from scratch, rewrite for any job, or optimize your LinkedIn profile — all AI-powered</p></div>""", unsafe_allow_html=True)
-    if not api_key: st.warning("⚠️ Enter your free API key in the sidebar")
+    if not api_key:
+        st.warning("⚠️ Enter your free API key in the sidebar")
 
     mode = st.radio("", ["✨ Build Fresh Resume", "🔄 Rewrite for New Job", "💻 LinkedIn Profile Optimizer"], horizontal=True, label_visibility="collapsed", key="rb_mode")
     st.markdown("---")
@@ -844,7 +895,7 @@ elif page == "📝 Resume Builder":
         rw1, rw2 = st.columns(2, gap="large")
         with rw1:
             st.markdown('<div class="section-title">📄 Your Current Resume</div>', unsafe_allow_html=True)
-            rwt = st.radio("", ["📎 Upload PDF","📋 Paste Text"], horizontal=True, label_visibility="collapsed", key="rw_rt")
+            rwt = st.radio("", ["📎 Upload PDF", "📋 Paste Text"], horizontal=True, label_visibility="collapsed", key="rw_rt")
             rw_cur = ""
             if rwt == "📎 Upload PDF":
                 up = st.file_uploader("", type=["pdf"], label_visibility="collapsed", key="rw_pdf")
@@ -852,28 +903,37 @@ elif page == "📝 Resume Builder":
                     try:
                         rw_cur = extract_text_from_pdf(up)
                         st.success(f"✅ Extracted {len(rw_cur.split())} words from **{up.name}**")
-                        with st.expander("👁 Preview extracted text"): st.text(rw_cur[:600]+"..." if len(rw_cur)>600 else rw_cur)
-                    except ValueError as e: st.error(str(e))
-            else: rw_cur = st.text_area("", height=300, placeholder="Paste your complete current resume here...", label_visibility="collapsed", key="rw_paste")
+                        with st.expander("👁 Preview extracted text"):
+                            st.text(rw_cur[:600] + "..." if len(rw_cur) > 600 else rw_cur)
+                    except ValueError as e:
+                        st.error(str(e))
+            else:
+                rw_cur = st.text_area("", height=300, placeholder="Paste your complete current resume here...", label_visibility="collapsed", key="rw_paste")
         with rw2:
             st.markdown('<div class="section-title">🎯 Target Job</div>', unsafe_allow_html=True)
-            rw_jt = st.text_input("Job Title *",            placeholder="e.g. Data Engineer, AI Engineer", key="rw_jt")
-            rw_co = st.text_input("Company (optional)",     placeholder="e.g. Google, Amazon, TCS",         key="rw_co")
+            rw_jt = st.text_input("Job Title *", placeholder="e.g. Data Engineer, AI Engineer", key="rw_jt")
+            rw_co = st.text_input("Company (optional)", placeholder="e.g. Google, Amazon, TCS", key="rw_co")
             rw_jd = st.text_area("Job Description *", height=220, placeholder="Paste the full job posting here — the more detail, the better the rewrite...", key="rw_jd")
 
         st.markdown('<div class="section-title">⚙️ Rewrite Options</div>', unsafe_allow_html=True)
-        op1,op2,op3 = st.columns(3)
-        with op1: rw_ats  = st.checkbox("🔥 Aggressive ATS keywords", value=True, help="Heavily injects job keywords throughout")
-        with op2: rw_num  = st.checkbox("📊 Add estimated metrics",   value=True, help="AI adds realistic numbers/% where missing")
-        with op3: rw_lang = st.checkbox("✨ Modernize language",       value=True, help="Replace weak verbs with power action words")
+        op1, op2, op3 = st.columns(3)
+        with op1:
+            rw_ats = st.checkbox("🔥 Aggressive ATS keywords", value=True, help="Heavily injects job keywords throughout")
+        with op2:
+            rw_num = st.checkbox("📊 Add estimated metrics", value=True, help="AI adds realistic numbers/% where missing")
+        with op3:
+            rw_lang = st.checkbox("✨ Modernize language", value=True, help="Replace weak verbs with power action words")
 
         if st.button("🔄 Rewrite My Resume", type="primary", use_container_width=True, disabled=not api_key):
-            if not rw_cur.strip():   st.error("❌ Please provide your current resume.")
-            elif not rw_jd.strip():  st.error("❌ Please paste the target job description.")
-            elif len(rw_jd) < 50:   st.error("❌ Job description too short — paste the full posting.")
+            if not rw_cur.strip():
+                st.error("❌ Please provide your current resume.")
+            elif not rw_jd.strip():
+                st.error("❌ Please paste the target job description.")
+            elif len(rw_jd) < 50:
+                st.error("❌ Job description too short — paste the full posting.")
             else:
-                ats_rule  = "Inject EXACT keywords from JD throughout every section. Mirror job description language precisely. Front-load each bullet with the most important keyword." if rw_ats else "Naturally weave in relevant keywords."
-                num_rule  = "Add realistic quantified achievements where missing (e.g. 'reduced processing time by 40%', 'managed 3+ projects simultaneously'). Every bullet needs at least one number or % or scale." if rw_num else "Keep existing metrics."
+                ats_rule = "Inject EXACT keywords from JD throughout every section. Mirror job description language precisely. Front-load each bullet with the most important keyword." if rw_ats else "Naturally weave in relevant keywords."
+                num_rule = "Add realistic quantified achievements where missing (e.g. 'reduced processing time by 40%', 'managed 3+ projects simultaneously'). Every bullet needs at least one number or % or scale." if rw_num else "Keep existing metrics."
                 lang_rule = "Replace ALL weak verbs (helped, worked, assisted) with power verbs (Engineered, Architected, Spearheaded, Automated, Optimized). Remove all filler phrases like 'responsible for'." if rw_lang else "Improve language where clearly weak."
                 prompt = f"""You are the world's best resume writer specializing in ATS optimization for top MNC companies.
 TASK: Completely rewrite this resume to achieve 95%+ ATS score for this specific job.
@@ -907,48 +967,56 @@ Output the COMPLETE rewritten resume, ready to copy-paste. Start with the person
                         Go to <strong>🎯 Analyzer</strong> tab to verify your ATS score — aim for 80%+!</div>""", unsafe_allow_html=True)
                         st.markdown('<div class="section-title">📄 Your Rewritten Resume</div>', unsafe_allow_html=True)
                         st.markdown(f'<div class="resume-output">{rewritten}</div>', unsafe_allow_html=True)
-                        d1,d2 = st.columns(2)
-                        with d1: st.download_button("⬇️ Download Rewritten Resume", data=rewritten, file_name=f"resume_{(rw_jt or 'rewritten').replace(' ','_')}.txt", mime="text/plain", use_container_width=True)
-                        with d2: st.download_button("⬇️ Download Both Versions", data=f"ORIGINAL:\n{'='*50}\n{rw_cur}\n\nREWRITTEN:\n{'='*50}\n{rewritten}", file_name="resume_comparison.txt", mime="text/plain", use_container_width=True)
+                        d1, d2 = st.columns(2)
+                        with d1:
+                            st.download_button("⬇️ Download Rewritten Resume", data=rewritten, file_name=f"resume_{(rw_jt or 'rewritten').replace(' ','_')}.txt", mime="text/plain", use_container_width=True)
+                        with d2:
+                            st.download_button("⬇️ Download Both Versions", data=f"ORIGINAL:\n{'='*50}\n{rw_cur}\n\nREWRITTEN:\n{'='*50}\n{rewritten}", file_name="resume_comparison.txt", mime="text/plain", use_container_width=True)
                         st.markdown("""<div class="win-box">⚡ <strong>Next Steps:</strong><br>
                         1. Copy the resume above → paste into Google Docs → format cleanly<br>
                         2. Go to <strong>🎯 Analyzer</strong> → paste this resume + job description → check ATS score<br>
                         3. Aim for 80%+ before applying. Rewrite again if needed!</div>""", unsafe_allow_html=True)
-                    except Exception as e: st.error(f"❌ {e}")
+                    except Exception as e:
+                        st.error(f"❌ {e}")
 
     # ── MODE: BUILD FRESH ──
     elif mode == "✨ Build Fresh Resume":
         st.markdown("""<div class="info-box">✨ <strong>How this works:</strong> Fill in your details → AI builds a complete,
         professional, ATS-optimized resume tailored to your target job. Takes about 20 seconds.</div>""", unsafe_allow_html=True)
         st.markdown('<div class="section-title">👤 Personal Info</div>', unsafe_allow_html=True)
-        p1,p2 = st.columns(2, gap="large")
+        p1, p2 = st.columns(2, gap="large")
         with p1:
-            rb_name = st.text_input("Full Name *",   placeholder="Yagyesh Vyas",    key="rb_name")
-            rb_mail = st.text_input("Email *",       placeholder="you@gmail.com",   key="rb_mail")
-            rb_ph   = st.text_input("Phone",         placeholder="+1 (123) 456-7890",key="rb_ph")
-            rb_loc  = st.text_input("Location",      placeholder="Richmond, VA, USA",key="rb_loc")
+            rb_name = st.text_input("Full Name *", placeholder="Yagyesh Vyas", key="rb_name")
+            rb_mail = st.text_input("Email *", placeholder="you@gmail.com", key="rb_mail")
+            rb_ph = st.text_input("Phone", placeholder="+1 (123) 456-7890", key="rb_ph")
+            rb_loc = st.text_input("Location", placeholder="Richmond, VA, USA", key="rb_loc")
         with p2:
-            rb_tgt  = st.text_input("Target Job Title *", placeholder="e.g. Data Engineer, AI Engineer", key="rb_tgt")
-            rb_li   = st.text_input("LinkedIn URL",       placeholder="linkedin.com/in/yourname",        key="rb_li")
-            rb_gh   = st.text_input("GitHub URL",         placeholder="github.com/yourname",             key="rb_gh")
-            rb_port = st.text_input("Portfolio URL",      placeholder="yoursite.com",                    key="rb_port")
+            rb_tgt = st.text_input("Target Job Title *", placeholder="e.g. Data Engineer, AI Engineer", key="rb_tgt")
+            rb_li = st.text_input("LinkedIn URL", placeholder="linkedin.com/in/yourname", key="rb_li")
+            rb_gh = st.text_input("GitHub URL", placeholder="github.com/yourname", key="rb_gh")
+            rb_port = st.text_input("Portfolio URL", placeholder="yoursite.com", key="rb_port")
         st.markdown('<div class="section-title">🎓 Education</div>', unsafe_allow_html=True)
         rb_edu = st.text_area("", height=85, label_visibility="collapsed", key="rb_edu",
-            placeholder="Master's in CS, University of the Potomac, 2024–2026, GPA 3.88\nBachelor's in CS, GTU, 2019–2022, GPA 8.08")
+                              placeholder="Master's in CS, University of the Potomac, 2024–2026, GPA 3.88\nBachelor's in CS, GTU, 2019–2022, GPA 8.08")
         st.markdown('<div class="section-title">💼 Work Experience</div>', unsafe_allow_html=True)
         rb_exp = st.text_area("", height=120, label_visibility="collapsed", key="rb_exp",
-            placeholder="Data & IT Developer Intern, MKL Management LLC, Feb 2025–Oct 2025\n- Built Python automation scripts\n- Designed Power BI dashboards\n- Managed SQL databases")
+                              placeholder="Data & IT Developer Intern, MKL Management LLC, Feb 2025–Oct 2025\n- Built Python automation scripts\n- Designed Power BI dashboards\n- Managed SQL databases")
         st.markdown('<div class="section-title">🛠 Skills & Projects</div>', unsafe_allow_html=True)
-        sk1,sk2 = st.columns(2, gap="large")
-        with sk1: rb_sk = st.text_area("Technical Skills (comma-separated)", height=85, key="rb_sk", placeholder="Python, SQL, Power BI, Docker, AWS, Streamlit, REST APIs, Git...")
-        with sk2: rb_pr = st.text_area("Projects", height=85, key="rb_pr", placeholder="AI Career Suite — Python, OpenRouter API, Streamlit. Live at streamlit.app")
+        sk1, sk2 = st.columns(2, gap="large")
+        with sk1:
+            rb_sk = st.text_area("Technical Skills (comma-separated)", height=85, key="rb_sk", placeholder="Python, SQL, Power BI, Docker, AWS, Streamlit, REST APIs, Git...")
+        with sk2:
+            rb_pr = st.text_area("Projects", height=85, key="rb_pr", placeholder="AI Career Suite — Python, OpenRouter API, Streamlit. Live at streamlit.app")
         st.markdown('<div class="section-title">🏆 Certifications & Target JD</div>', unsafe_allow_html=True)
-        ce1,ce2 = st.columns(2, gap="large")
-        with ce1: rb_cert = st.text_area("Certifications", height=75, key="rb_cert", placeholder="AWS ML Fundamentals, Jan 2026\nKubernetes Cloud Native, Jan 2026")
-        with ce2: rb_jd   = st.text_area("Target Job Description (recommended)", height=75, key="rb_jd2", placeholder="Paste the job you're targeting for a tailored resume...")
+        ce1, ce2 = st.columns(2, gap="large")
+        with ce1:
+            rb_cert = st.text_area("Certifications", height=75, key="rb_cert", placeholder="AWS ML Fundamentals, Jan 2026\nKubernetes Cloud Native, Jan 2026")
+        with ce2:
+            rb_jd = st.text_area("Target Job Description (recommended)", height=75, key="rb_jd2", placeholder="Paste the job you're targeting for a tailored resume...")
 
         if st.button("📝 Build My Resume", type="primary", use_container_width=True, disabled=not api_key):
-            if not rb_name.strip() or not rb_mail.strip() or not rb_tgt.strip(): st.error("❌ Please fill in Name, Email, and Target Job Title.")
+            if not rb_name.strip() or not rb_mail.strip() or not rb_tgt.strip():
+                st.error("❌ Please fill in Name, Email, and Target Job Title.")
             else:
                 with st.spinner("📝 Building your ATS-optimized resume..."):
                     try:
@@ -969,7 +1037,8 @@ Rules: Professional Summary (3 sentences, target title+top skills+value), power 
                         st.markdown(f'<div class="resume-output">{output}</div>', unsafe_allow_html=True)
                         st.download_button("⬇️ Download Resume", data=output, file_name=f"resume_{rb_name.replace(' ','_')}.txt", mime="text/plain", use_container_width=True)
                         st.info("💡 Copy into Google Docs → format cleanly → go to 🎯 Analyzer to verify ATS score!")
-                    except Exception as e: st.error(f"❌ {e}")
+                    except Exception as e:
+                        st.error(f"❌ {e}")
 
     # ── MODE: LINKEDIN OPTIMIZER ──
     elif mode == "💻 LinkedIn Profile Optimizer":
@@ -978,14 +1047,18 @@ Rules: Professional Summary (3 sentences, target title+top skills+value), power 
         li1, li2 = st.columns(2, gap="large")
         with li1:
             st.markdown('<div class="section-title">📄 Your Resume / LinkedIn Profile</div>', unsafe_allow_html=True)
-            li_input_type = st.radio("", ["📎 Upload PDF","📋 Paste Text"], horizontal=True, label_visibility="collapsed", key="li_rt")
+            li_input_type = st.radio("", ["📎 Upload PDF", "📋 Paste Text"], horizontal=True, label_visibility="collapsed", key="li_rt")
             li_text = ""
             if li_input_type == "📎 Upload PDF":
                 up = st.file_uploader("", type=["pdf"], label_visibility="collapsed", key="li_pdf")
                 if up:
-                    try: li_text = extract_text_from_pdf(up); st.success(f"✅ {len(li_text.split())} words extracted")
-                    except ValueError as e: st.error(str(e))
-            else: li_text = st.text_area("", height=250, placeholder="Paste your resume or current LinkedIn profile text...", label_visibility="collapsed", key="li_paste")
+                    try:
+                        li_text = extract_text_from_pdf(up)
+                        st.success(f"✅ {len(li_text.split())} words extracted")
+                    except ValueError as e:
+                        st.error(str(e))
+            else:
+                li_text = st.text_area("", height=250, placeholder="Paste your resume or current LinkedIn profile text...", label_visibility="collapsed", key="li_paste")
         with li2:
             st.markdown('<div class="section-title">🎯 Target Role</div>', unsafe_allow_html=True)
             li_role = st.text_input("Target Job Title", placeholder="e.g. Senior Data Engineer", key="li_role")
@@ -994,14 +1067,20 @@ Rules: Professional Summary (3 sentences, target title+top skills+value), power 
 
         st.markdown('<div class="section-title">⚙️ Optimize</div>', unsafe_allow_html=True)
         lo1, lo2, lo3, lo4 = st.columns(4)
-        with lo1: lo_headline = st.checkbox("📌 Headline", value=True)
-        with lo2: lo_about = st.checkbox("📝 About Section", value=True)
-        with lo3: lo_exp = st.checkbox("💼 Experience Bullets", value=True)
-        with lo4: lo_featured = st.checkbox("⭐ Featured Suggestions", value=True)
+        with lo1:
+            lo_headline = st.checkbox("📌 Headline", value=True)
+        with lo2:
+            lo_about = st.checkbox("📝 About Section", value=True)
+        with lo3:
+            lo_exp = st.checkbox("💼 Experience Bullets", value=True)
+        with lo4:
+            lo_featured = st.checkbox("⭐ Featured Suggestions", value=True)
 
         if st.button("💻 Optimize My LinkedIn", type="primary", use_container_width=True, disabled=not api_key):
-            if not li_text.strip(): st.error("❌ Please provide your resume or LinkedIn profile.")
-            elif not li_role.strip(): st.error("❌ Please enter your target job title.")
+            if not li_text.strip():
+                st.error("❌ Please provide your resume or LinkedIn profile.")
+            elif not li_role.strip():
+                st.error("❌ Please enter your target job title.")
             else:
                 sections = [s for s, c in [("HEADLINE (120 char max, keyword-rich, attention-grabbing)", lo_headline), ("ABOUT SECTION (2600 char max, 3 paragraphs: hook + achievements + CTA)", lo_about), ("EXPERIENCE BULLETS (rewrite top 3 roles with LinkedIn-optimized bullets — longer than resume, more storytelling)", lo_exp), ("FEATURED SECTION (3-5 suggestions for what to feature: projects, certifications, published articles, posts)", lo_featured)] if c]
                 with st.spinner("💻 Optimizing your LinkedIn profile..."):
@@ -1034,7 +1113,8 @@ Make it sound human, confident, and authentic — not like generic AI.""", tempe
                         3. Update your 3 most recent Experience entries<br>
                         4. Add Featured items<br>
                         5. Turn on "Open to Work" badge (visible to recruiters only)</div>""", unsafe_allow_html=True)
-                    except Exception as e: st.error(f"❌ {e}")
+                    except Exception as e:
+                        st.error(f"❌ {e}")
 
 
 # ════════════════════════════════════════════════════════
@@ -1044,33 +1124,45 @@ elif page == "📊 Dashboard":
     st.markdown("""<div class="hero"><div class="hero-badge">Progress · Trends · Insights · Career Intelligence</div>
     <h1>Career Analytics Dashboard</h1>
     <p>Track your resume improvements, identify skill gaps, and get AI-powered career intelligence</p></div>""", unsafe_allow_html=True)
-    analyses = get_all_analyses(); ms = get_top_missing_skills(); st_data = get_score_trend()
-    if not analyses: st.info("📭 No analyses yet. Go to **🎯 Analyzer** to get started!")
+    analyses = get_all_analyses()
+    ms = get_top_missing_skills()
+    st_data = get_score_trend()
+    if not analyses:
+        st.info("📭 No analyses yet. Go to **🎯 Analyzer** to get started!")
     else:
-        avg_ats = sum(a["ats_score"] for a in analyses)/len(analyses)
-        avg_m   = sum(a["match_score"] for a in analyses)/len(analyses)
-        best    = max(a["ats_score"] for a in analyses)
-        m1,m2,m3,m4 = st.columns(4)
+        avg_ats = sum(a["ats_score"] for a in analyses) / len(analyses)
+        avg_m = sum(a["match_score"] for a in analyses) / len(analyses)
+        best = max(a["ats_score"] for a in analyses)
+        m1, m2, m3, m4 = st.columns(4)
         m1.metric("📋 Total Analyses", len(analyses))
-        m2.metric("🎯 Avg ATS",  f"{avg_ats:.0f}/100")
-        m3.metric("💼 Avg Match",f"{avg_m:.0f}/100")
+        m2.metric("🎯 Avg ATS", f"{avg_ats:.0f}/100")
+        m3.metric("💼 Avg Match", f"{avg_m:.0f}/100")
         m4.metric("🏆 Best ATS", f"{best}/100")
         if len(st_data) >= 2:
             st.markdown('<div class="section-title">📈 Score Improvement Over Time</div>', unsafe_allow_html=True)
-            df = pd.DataFrame(st_data).set_index("date")[["ats","match"]]
-            df.columns = ["ATS Score","Match Score"]; st.line_chart(df)
+            df = pd.DataFrame(st_data).set_index("date")[["ats", "match"]]
+            df.columns = ["ATS Score", "Match Score"]
+            st.line_chart(df)
         if ms:
             st.markdown('<div class="section-title">🎯 Skills You Keep Missing — Learn These First</div>', unsafe_allow_html=True)
-            df2 = pd.DataFrame(ms).head(10).set_index("skill"); df2.columns = ["Times Required"]; st.bar_chart(df2)
+            df2 = pd.DataFrame(ms).head(10).set_index("skill")
+            df2.columns = ["Times Required"]
+            st.bar_chart(df2)
         st.markdown('<div class="section-title">📋 Analysis History</div>', unsafe_allow_html=True)
         for a in analyses:
-            icon = "🟢" if a["ats_score"]>=70 else ("🟡" if a["ats_score"]>=50 else "🔴")
+            icon = "🟢" if a["ats_score"] >= 70 else ("🟡" if a["ats_score"] >= 50 else "🔴")
             with st.expander(f"{icon} {a['job_title'] or 'Unknown'}{' @ '+a['company_name'] if a['company_name'] else ''} — ATS {a['ats_score']} · Match {a['match_score']} · {a['created_at'][:10]}"):
-                h1,h2 = st.columns(2)
-                with h1: st.markdown("**Matched:**"); st.markdown(chips(a["matched_skills"][:8],"chip-green"), unsafe_allow_html=True)
-                with h2: st.markdown("**Missing:**");  st.markdown(chips(a["missing_skills"][:8],"chip-red"),   unsafe_allow_html=True)
+                h1, h2 = st.columns(2)
+                with h1:
+                    st.markdown("**Matched:**")
+                    st.markdown(chips(a["matched_skills"][:8], "chip-green"), unsafe_allow_html=True)
+                with h2:
+                    st.markdown("**Missing:**")
+                    st.markdown(chips(a["missing_skills"][:8], "chip-red"), unsafe_allow_html=True)
                 st.markdown(f"**Summary:** {a['overall_summary']}")
-                if st.button("🗑️ Delete", key=f"del_{a['id']}"): delete_analysis(a["id"]); st.rerun()
+                if st.button("🗑️ Delete", key=f"del_{a['id']}"):
+                    delete_analysis(a["id"])
+                    st.rerun()
 
         # ── AI CAREER COACH ──
         st.markdown('---')
@@ -1110,7 +1202,8 @@ Create:
 Be specific with resource links (Coursera, YouTube, free courses). Make it actionable, not generic.""", temperature=0.5, max_tokens=2500)
                         st.markdown(f'<div class="resume-output">{roadmap}</div>', unsafe_allow_html=True)
                         st.download_button("⬇️ Download Learning Roadmap", data=roadmap, file_name="learning_roadmap.txt", mime="text/plain", use_container_width=True, key="dl_roadmap")
-                    except Exception as e: st.error(f"❌ {e}")
+                    except Exception as e:
+                        st.error(f"❌ {e}")
 
         with coach2:
             # Export all data
@@ -1533,8 +1626,6 @@ elif page == "🔑 API Guide":
         </div>
     </div>
     </div>""", unsafe_allow_html=True)
-
-
 
 
 # ════════════════════════════════════════════════════════
