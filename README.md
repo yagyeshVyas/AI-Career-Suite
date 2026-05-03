@@ -1,31 +1,59 @@
-# 🚀 AI Career Suite
+# 🚀 AI Career Suite 2.0 — Dark Luxury 3D Edition
 
 <p align="center">
   <img src="https://img.shields.io/badge/Python-3.11-blue?style=for-the-badge&logo=python&logoColor=white" />
-  <img src="https://img.shields.io/badge/Streamlit-1.32-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white" />
-  <img src="https://img.shields.io/badge/13+_AI_Providers-Supported-8b5cf6?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/Streamlit-1.32+-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white" />
+  <img src="https://img.shields.io/badge/15+_AI_Providers-Supported-8b5cf6?style=for-the-badge" />
   <img src="https://img.shields.io/badge/NVIDIA_NIM-Gemma_4_31B-76b900?style=for-the-badge&logo=nvidia&logoColor=white" />
-  <img src="https://img.shields.io/badge/60+_Models-Free_%26_Paid-10b981?style=for-the-badge" />
-  <img src="https://img.shields.io/badge/Local_LLM-Ollama_%7C_LM_Studio-f59e0b?style=for-the-badge" />
-  <img src="https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/100+_Models-Free_%26_Paid-10b981?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/UI_UX-3D_Glassmorphism-ec4899?style=for-the-badge" />
 </p>
 
 <p align="center">
-  <strong>5 AI-powered career tools in one app.</strong><br/>
-  Resume analysis · Cover letters · Interview prep · Resume rewriting · Progress tracking<br/>
-  Works with 13+ AI providers including NVIDIA Build (Gemma 4 31B), OpenRouter, Groq, Google Gemini — and local models via Ollama.
+  <strong>The world's most powerful open-source AI career assistant.</strong><br/>
+  Interactive Copilot · Smart URL Scraper · 3D Analytics · Luxury Dark UI<br/>
+  Works with 15+ AI providers including NVIDIA Build, OpenRouter, Groq, Google Gemini — and local models via Ollama.
+</p>
+
+<p align="center">
+  <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHBkZnE4Z3JzMmRnbTV4Z2JzMmRnbTV4Z2JzMmRnbTV4Z2JzMmRnbTV4JmVwPXYxX2ludGVybmFsX2dpZl9ieV9pZCZjdD1n/3o7TKMGpxU88h8nK7u/giphy.gif" alt="AI Career Suite Demo" width="800">
 </p>
 
 <p align="center">
   <a href="https://your-app.streamlit.app"><strong>🔗 Live Demo</strong></a> ·
   <a href="#-quick-start"><strong>⚡ Quick Start</strong></a> ·
   <a href="#-ai-providers--models"><strong>🤖 AI Providers</strong></a> ·
-  <a href="#️-local-llm--ollama--lm-studio"><strong>🖥️ Local LLM</strong></a>
+  <a href="#-new-features-in-v20"><strong>✨ v2.0 Features</strong></a>
 </p>
 
 ---
 
-## 🛠️ The 5 Tools
+## ✨ New Features in v2.0
+
+### 🤖 1. AI Career Copilot (Interactive Chat)
+A persistent, context-aware chatbot that acts as your elite executive coach.
+- **Context-Aware**: Directly reads your last resume analysis and job target.
+- **Dynamic Helper**: Ask it to rewrite specific lines, roleplay interviews, or suggest networking messages.
+- **Direct Input**: Upload PDFs or scrape URLs directly inside the chat to give the AI context.
+
+### 🕸️ 2. Smart URL Job Scraper
+Stop copying and pasting! v2.0 introduces a BeautifulSoup-powered scraper.
+- Just paste a job link from **Greenhouse, Lever, LinkedIn**, or company career pages.
+- The app automatically extracts the job requirements and responsibilities for analysis.
+
+### 📊 3. 3D Plotly Visualizations
+We replaced static charts with interactive, glowing data visualizations.
+- **Skill Radar Chart**: A 3D "Spider Web" plot visualizing your top missing skills.
+- **Area Depth Chart**: Track your progress over time with layered, gradient area charts.
+
+### 🎨 4. Ultra-Modern 3D UI
+- **3D Tilt Hover**: Modules and cards physically tilt in 3D space as you hover.
+- **Aurora Background**: Stunning, animated glassmorphism gradients.
+- **Staggered Animations**: Content flows into the screen with cinematic precision.
+
+---
+
+## 🛠️ Core Tools
 
 ### 🎯 1. Resume Analyzer
 Paste your resume + a job description. Get a full ATS-style recruiter analysis in ~15 seconds.
