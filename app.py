@@ -388,15 +388,18 @@ if page == "🎯 Analyzer":
             resume_file = "pasted.txt"
     with c2:
         st.markdown('<div class="section-title">💼 Job Details</div>', unsafe_allow_html=True)
-        jt = st.text_input("Job Title", placeholder="e.g. Data Engineer, AI Engineer")
-        co = st.text_input("Company", placeholder="e.g. Google, Amazon, TCS")
+        jt = st.text_input("Job Title", placeholder="e.g. Data Engineer, AI Engineer", value=st.session_state.get("az_title", ""))
+        co = st.text_input("Company", placeholder="e.g. Google, Amazon, TCS", value=st.session_state.get("az_company", ""))
         j_mode = st.radio("Provide Job Description:", ["Paste Text", "🕸️ Scrape URL"], horizontal=True)
         if j_mode == "🕸️ Scrape URL":
             url = st.text_input("Job Link URL", placeholder="https://greenhouse.io/... (Many job boards supported)")
             if url and st.button("⬇️ Scrape Page"):
                 with st.spinner("Extracting..."):
-                    js_txt = fetch_job_description(url)
-                    st.session_state["fetched_jd"] = js_txt
+                    scrape_data = fetch_job_description(url)
+                    st.session_state["fetched_jd"] = scrape_data["text"]
+                    if scrape_data["title"]: st.session_state["az_title"] = scrape_data["title"]
+                    if scrape_data["company"]: st.session_state["az_company"] = scrape_data["company"]
+                    st.rerun()
             jd = st.text_area("Extracted Job Context", value=st.session_state.get("fetched_jd", ""), height=150)
         else:
             jd = st.text_area("Job Description", height=180, placeholder="Paste the full job posting here — requirements, responsibilities, qualifications...")
@@ -601,8 +604,8 @@ elif page == "✉️ Cover Letter":
             cl_r = st.text_area("", height=200, placeholder="Paste resume...", label_visibility="collapsed", key="cl_paste")
     with c2:
         st.markdown('<div class="section-title">💼 Job Details</div>', unsafe_allow_html=True)
-        cl_jt = st.text_input("Job Title", placeholder="e.g. Data Engineer", key="cl_jt")
-        cl_co = st.text_input("Company", placeholder="e.g. Google", key="cl_co")
+        cl_jt = st.text_input("Job Title", placeholder="e.g. Data Engineer", value=st.session_state.get("cl_title", ""), key="cl_jt")
+        cl_co = st.text_input("Company", placeholder="e.g. Google", value=st.session_state.get("cl_company", ""), key="cl_co")
         cl_hm = st.text_input("Hiring Manager (optional)", placeholder="e.g. Sarah Johnson", key="cl_hm")
         
         cl_j_mode = st.radio("Provide Job Description:", ["Paste Text", "🕸️ Scrape URL"], horizontal=True, key="cl_j_mode")
@@ -610,8 +613,11 @@ elif page == "✉️ Cover Letter":
             cl_url = st.text_input("Job Link URL", placeholder="https://greenhouse.io/...", key="cl_url")
             if cl_url and st.button("⬇️ Scrape Page", key="cl_scrape"):
                 with st.spinner("Extracting..."):
-                    js_txt = fetch_job_description(cl_url)
-                    st.session_state["cl_fetched_jd"] = js_txt
+                    scrape_data = fetch_job_description(cl_url)
+                    st.session_state["cl_fetched_jd"] = scrape_data["text"]
+                    if scrape_data["title"]: st.session_state["cl_title"] = scrape_data["title"]
+                    if scrape_data["company"]: st.session_state["cl_company"] = scrape_data["company"]
+                    st.rerun()
             cl_jd = st.text_area("Extracted Job Context", value=st.session_state.get("cl_fetched_jd", ""), height=100, key="cl_jd")
         else:
             cl_jd = st.text_area("Job Description", height=140, key="cl_jd_paste", placeholder="Paste job posting here...")
@@ -717,16 +723,19 @@ elif page == "🎤 Interview Prep":
             ip_r = st.text_area("", height=200, placeholder="Paste resume...", label_visibility="collapsed", key="ip_paste")
     with c2:
         st.markdown('<div class="section-title">💼 Job Details</div>', unsafe_allow_html=True)
-        ip_jt = st.text_input("Job Title", placeholder="e.g. Data Engineer", key="ip_jt")
-        ip_co = st.text_input("Company", placeholder="e.g. TCS, Google", key="ip_co")
+        ip_jt = st.text_input("Job Title", placeholder="e.g. Data Engineer", value=st.session_state.get("ip_title", ""), key="ip_jt")
+        ip_co = st.text_input("Company", placeholder="e.g. TCS, Google", value=st.session_state.get("ip_company", ""), key="ip_co")
         
         ip_j_mode = st.radio("Provide Job Description:", ["Paste Text", "🕸️ Scrape URL"], horizontal=True, key="ip_j_mode")
         if ip_j_mode == "🕸️ Scrape URL":
             ip_url = st.text_input("Job Link URL", placeholder="https://greenhouse.io/...", key="ip_url")
             if ip_url and st.button("⬇️ Scrape Page", key="ip_scrape"):
                 with st.spinner("Extracting..."):
-                    js_txt = fetch_job_description(ip_url)
-                    st.session_state["ip_fetched_jd"] = js_txt
+                    scrape_data = fetch_job_description(ip_url)
+                    st.session_state["ip_fetched_jd"] = scrape_data["text"]
+                    if scrape_data["title"]: st.session_state["ip_title"] = scrape_data["title"]
+                    if scrape_data["company"]: st.session_state["ip_company"] = scrape_data["company"]
+                    st.rerun()
             ip_jd = st.text_area("Extracted Job Context", value=st.session_state.get("ip_fetched_jd", ""), height=100, key="ip_jd")
         else:
             ip_jd = st.text_area("Job Description", height=140, key="ip_jd_paste", placeholder="Paste job posting here...")
@@ -901,16 +910,19 @@ elif page == "📝 Resume Builder":
                 rw_cur = st.text_area("", height=300, placeholder="Paste your complete current resume here...", label_visibility="collapsed", key="rw_paste")
         with rw2:
             st.markdown('<div class="section-title">🎯 Target Job</div>', unsafe_allow_html=True)
-            rw_jt = st.text_input("Job Title *", placeholder="e.g. Data Engineer, AI Engineer", key="rw_jt")
-            rw_co = st.text_input("Company (optional)", placeholder="e.g. Google, Amazon, TCS", key="rw_co")
+            rw_jt = st.text_input("Job Title *", placeholder="e.g. Data Engineer, AI Engineer", value=st.session_state.get("rw_title", ""), key="rw_jt")
+            rw_co = st.text_input("Company (optional)", placeholder="e.g. Google, Amazon, TCS", value=st.session_state.get("rw_company", ""), key="rw_co")
             
             rw_j_mode = st.radio("Provide Job Description:", ["Paste Text", "🕸️ Scrape URL"], horizontal=True, key="rw_j_mode")
             if rw_j_mode == "🕸️ Scrape URL":
                 rw_url = st.text_input("Job Link URL", placeholder="https://greenhouse.io/...", key="rw_url")
                 if rw_url and st.button("⬇️ Scrape Page", key="rw_scrape"):
                     with st.spinner("Extracting..."):
-                        js_txt = fetch_job_description(rw_url)
-                        st.session_state["rw_fetched_jd"] = js_txt
+                        scrape_data = fetch_job_description(rw_url)
+                        st.session_state["rw_fetched_jd"] = scrape_data["text"]
+                        if scrape_data["title"]: st.session_state["rw_title"] = scrape_data["title"]
+                        if scrape_data["company"]: st.session_state["rw_company"] = scrape_data["company"]
+                        st.rerun()
                 rw_jd = st.text_area("Extracted Job Context", value=st.session_state.get("rw_fetched_jd", ""), height=120, key="rw_jd")
             else:
                 rw_jd = st.text_area("Job Description *", height=220, placeholder="Paste the full job posting here — the more detail, the better the rewrite...", key="rw_jd_paste")
@@ -991,7 +1003,7 @@ Output the COMPLETE rewritten resume, ready to copy-paste. Start with the person
             rb_ph = st.text_input("Phone", placeholder="+1 (123) 456-7890", key="rb_ph")
             rb_loc = st.text_input("Location", placeholder="Richmond, VA, USA", key="rb_loc")
         with p2:
-            rb_tgt = st.text_input("Target Job Title *", placeholder="e.g. Data Engineer, AI Engineer", key="rb_tgt")
+            rb_tgt = st.text_input("Target Job Title *", placeholder="e.g. Data Engineer, AI Engineer", value=st.session_state.get("rb2_title", ""), key="rb_tgt")
             rb_li = st.text_input("LinkedIn URL", placeholder="linkedin.com/in/yourname", key="rb_li")
             rb_gh = st.text_input("GitHub URL", placeholder="github.com/yourname", key="rb_gh")
             rb_port = st.text_input("Portfolio URL", placeholder="yoursite.com", key="rb_port")
@@ -1017,8 +1029,10 @@ Output the COMPLETE rewritten resume, ready to copy-paste. Start with the person
                 rb2_url = st.text_input("Job Link URL", placeholder="https://greenhouse.io/...", key="rb2_url")
                 if rb2_url and st.button("⬇️ Scrape Page", key="rb2_scrape"):
                     with st.spinner("Extracting..."):
-                        js_txt = fetch_job_description(rb2_url)
-                        st.session_state["rb2_fetched_jd"] = js_txt
+                        scrape_data = fetch_job_description(rb2_url)
+                        st.session_state["rb2_fetched_jd"] = scrape_data["text"]
+                        if scrape_data["title"]: st.session_state["rb2_title"] = scrape_data["title"]
+                        st.rerun()
                 rb_jd = st.text_area("Extracted Job Context", value=st.session_state.get("rb2_fetched_jd", ""), height=75, key="rb_jd2")
             else:
                 rb_jd = st.text_area("Target Job Description (recommended)", height=75, key="rb_jd2_paste", placeholder="Paste the job you're targeting for a tailored resume...")
@@ -1282,8 +1296,9 @@ elif page == "🤖 AI Copilot":
                     cp_url = st.text_input("Job Link URL", placeholder="https://greenhouse.io/...", key="cp_url")
                     if cp_url and st.button("⬇️ Scrape Page", key="cp_scrape"):
                         with st.spinner("Extracting..."):
-                            js_txt = fetch_job_description(cp_url)
-                            st.session_state["cp_fetched_jd"] = js_txt
+                            scrape_data = fetch_job_description(cp_url)
+                            st.session_state["cp_fetched_jd"] = scrape_data["text"]
+                            st.rerun()
                     copilot_jd = st.text_area("Extracted Job Context", value=st.session_state.get("cp_fetched_jd", ""), height=100, key="cp_jd")
                 else:
                     copilot_jd = st.text_area("Job Description", height=150, key="cp_jd_paste", placeholder="Paste job posting here...")
