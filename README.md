@@ -20,7 +20,7 @@
 </p>
 
 <p align="center">
-  <a href="https://your-app.streamlit.app"><strong>🔗 Live Demo</strong></a> ·
+  <a href="https://ai-career-suite.streamlit.app/"><strong>🔗 Live Demo</strong></a> ·
   <a href="#-quick-start"><strong>⚡ Quick Start</strong></a> ·
   <a href="#-ai-providers--models"><strong>🤖 AI Providers</strong></a> ·
   <a href="#-new-features-in-v20"><strong>✨ v2.0 Features</strong></a>
@@ -208,7 +208,7 @@ streamlit run app.py
 
 ### Option 1 — Use the Deployed App (Zero Setup)
 
-1. Open → **[your-app.streamlit.app](https://your-app.streamlit.app)**
+1. Open → **[ai-career-suite.streamlit.app](https://ai-career-suite.streamlit.app/)**
 2. Get a free API key → [openrouter.ai/keys](https://openrouter.ai/keys) (2 min, no card)
 3. Paste key in sidebar → select **🎲 Auto Free Router**
 4. Go to **🎯 Analyzer** → upload resume → paste JD → click Analyze
@@ -233,7 +233,7 @@ streamlit run app.py
 1. Fork this repo
 2. Go to [share.streamlit.io](https://share.streamlit.io)
 3. Connect GitHub → select this repo → click **Deploy**
-4. Live at `https://YOUR_APP.streamlit.app` in ~2 minutes
+4. Live at `https://ai-career-suite.streamlit.app` in ~2 minutes
 
 ---
 
