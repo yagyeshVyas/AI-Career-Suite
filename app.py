@@ -397,9 +397,9 @@ def ai_call(prompt, temperature=0.7, max_tokens=2500):
 # 🎯 RESUME ANALYZER
 # ════════════════════════════════════════════════════════
 if page == "🎯 Analyzer":
-    st.markdown("""<div class="hero"><div class="hero-badge">ATS · Match Score · Interview Probability</div>
+    st.markdown("""<div class="hero"><div class="hero-badge">ATS · Match Score · Interview Probability · Deep Analysis</div>
     <h1>AI Career Suite</h1>
-    <p>Upload your resume, paste any job description — get a senior recruiter's verdict in 15 seconds</p></div>""", unsafe_allow_html=True)
+    <p>Upload your resume, paste any job description — get a senior recruiter's verdict with competitive positioning in seconds</p></div>""", unsafe_allow_html=True)
 
     if not api_key: st.warning("⚠️ Enter your free OpenRouter API key in the sidebar → openrouter.ai/keys")
 
@@ -492,15 +492,101 @@ EXPERIENCE: {r.get('experience_gap','N/A')}
 EDUCATION: {r.get('education_match','N/A')}"""
         st.download_button("⬇️ Download Full Report", data=report, file_name=f"analysis_{(r.get('job_title','role')).replace(' ','_')}.txt", mime="text/plain", use_container_width=True)
 
+        # ── DEEP ANALYSIS — Follow-up AI Call ──
+        st.markdown('---')
+        st.markdown('<div class="section-title">🧠 Deep Analysis — Advanced Insights</div>', unsafe_allow_html=True)
+        st.markdown("""<div class="info-box">🔬 <strong>Go deeper:</strong> Generate competitive positioning, section-by-section resume grading, and personalized rewrite suggestions powered by AI.</div>""", unsafe_allow_html=True)
+
+        da1, da2, da3 = st.columns(3)
+        with da1:
+            if st.button("📊 Competitive Positioning", use_container_width=True, key="deep_comp", disabled=not api_key):
+                with st.spinner("📊 Analyzing your competitive position..."):
+                    try:
+                        comp = ai_call(f"""You are a senior career strategist. Based on this resume and job description, provide a COMPETITIVE POSITIONING ANALYSIS.
+
+RESUME: {r.get('_resume_text', resume_text)}
+JOB: {r.get('job_title','the role')} at {r.get('company_name','the company')}
+JD: {jd}
+
+Provide:
+1. POSITIONING STATEMENT: One powerful sentence describing this candidate's unique value proposition
+2. TOP 3 DIFFERENTIATORS: What sets this candidate apart from other applicants
+3. COMPETITIVE WEAKNESSES: 2-3 areas where other candidates likely beat them
+4. MARKET DEMAND: How in-demand is this skill set right now (High/Medium/Low with explanation)
+5. CAREER TRAJECTORY: Where this person should aim in 2-3 years based on their trajectory
+6. NETWORKING STRATEGY: 3 specific actions to get noticed by hiring managers at {r.get('company_name','this company')}
+7. HIDDEN STRENGTHS: 2 skills/experiences in the resume that the candidate probably undervalues
+
+Be specific, actionable, and reference actual resume content.""", temperature=0.5, max_tokens=1500)
+                        st.markdown(f'<div class="resume-output">{comp}</div>', unsafe_allow_html=True)
+                        st.download_button("⬇️ Download Competitive Analysis", data=comp, file_name="competitive_analysis.txt", mime="text/plain", use_container_width=True, key="dl_comp")
+                    except Exception as e: st.error(f"❌ {e}")
+
+        with da2:
+            if st.button("📝 Section-by-Section Grade", use_container_width=True, key="deep_grade", disabled=not api_key):
+                with st.spinner("📝 Grading each resume section..."):
+                    try:
+                        grade = ai_call(f"""You are a professional resume reviewer. Grade each section of this resume for the target job.
+
+RESUME: {r.get('_resume_text', resume_text)}
+TARGET: {r.get('job_title','the role')} at {r.get('company_name','the company')}
+
+For EACH section below, give: Grade (A/B/C/D/F), Score (0-100), What's Good, What to Fix, Rewritten Example.
+
+Sections to grade:
+1. CONTACT INFO & HEADER
+2. PROFESSIONAL SUMMARY / OBJECTIVE
+3. WORK EXPERIENCE (bullet quality, action verbs, metrics)
+4. SKILLS SECTION (organization, relevance, ATS keywords)
+5. EDUCATION
+6. PROJECTS / PORTFOLIO
+7. CERTIFICATIONS
+8. OVERALL FORMATTING & STRUCTURE
+
+For each section that scores below B, provide a SPECIFIC rewritten example that would score A.
+End with an OVERALL GPA across all sections.""", temperature=0.4, max_tokens=2500)
+                        st.markdown(f'<div class="resume-output">{grade}</div>', unsafe_allow_html=True)
+                        st.download_button("⬇️ Download Section Grades", data=grade, file_name="section_grades.txt", mime="text/plain", use_container_width=True, key="dl_grade")
+                    except Exception as e: st.error(f"❌ {e}")
+
+        with da3:
+            if st.button("✨ AI Rewrite Suggestions", use_container_width=True, key="deep_rewrite", disabled=not api_key):
+                with st.spinner("✨ Generating rewrite suggestions..."):
+                    try:
+                        rewrite = ai_call(f"""You are the world's best resume writer. Rewrite the WEAKEST parts of this resume to score 95+ ATS.
+
+RESUME: {r.get('_resume_text', resume_text)}
+TARGET JOB: {r.get('job_title','the role')}
+MISSING SKILLS: {', '.join(r.get('missing_skills',[]))}
+KEYWORDS TO ADD: {', '.join(r.get('keyword_suggestions',[]))}
+
+Provide:
+1. REWRITTEN PROFESSIONAL SUMMARY (3 powerful sentences targeting this exact job)
+2. TOP 5 BULLET REWRITES (take the weakest bullets → rewrite with [Power Verb] + [Action] + [Tool] + [Measurable Result])
+3. SKILLS SECTION REWRITE (organized by category, critical skills first, all missing keywords injected)
+4. 3 NEW BULLETS TO ADD (based on likely experience that isn't highlighted enough)
+5. LINKEDIN HEADLINE (120 chars max, keyword-rich)
+6. LINKEDIN SUMMARY (3 sentences, different from resume summary)
+
+Make every word count. Use exact keywords from the job description.""", temperature=0.4, max_tokens=2000)
+                        st.markdown(f'<div class="resume-output">{rewrite}</div>', unsafe_allow_html=True)
+                        st.download_button("⬇️ Download Rewrite Suggestions", data=rewrite, file_name="rewrite_suggestions.txt", mime="text/plain", use_container_width=True, key="dl_rewrite")
+                    except Exception as e: st.error(f"❌ {e}")
+
 
 # ════════════════════════════════════════════════════════
 # ✉️ COVER LETTER
 # ════════════════════════════════════════════════════════
 elif page == "✉️ Cover Letter":
-    st.markdown("""<div class="hero"><div class="hero-badge">AI-Written · ATS-Friendly · Personalized</div>
-    <h1>Cover Letter Generator</h1>
-    <p>Paste resume + job description → Get a compelling, custom cover letter in seconds</p></div>""", unsafe_allow_html=True)
-    if not api_key: st.warning("⚠️ Enter your free OpenRouter API key in the sidebar → openrouter.ai/keys")
+    st.markdown("""<div class="hero"><div class="hero-badge">Cover Letter · Follow-Up Email · Thank You Note · LinkedIn Message</div>
+    <h1>Smart Letter Generator</h1>
+    <p>Generate any professional document — cover letters, follow-up emails, thank-you notes, and LinkedIn outreach messages</p></div>""", unsafe_allow_html=True)
+    if not api_key: st.warning("⚠️ Enter your free API key in the sidebar")
+
+    # ── Document Type Selector ──
+    st.markdown('<div class="section-title">📋 Document Type</div>', unsafe_allow_html=True)
+    doc_type = st.radio("", ["✉️ Cover Letter", "📧 Follow-Up Email", "🙏 Thank You Note", "💼 LinkedIn Message", "❄️ Cold Outreach Email"], horizontal=True, label_visibility="collapsed", key="doc_type")
+
     c1,c2 = st.columns(2, gap="large")
     with c1:
         st.markdown('<div class="section-title">📄 Your Resume</div>', unsafe_allow_html=True)
@@ -518,25 +604,72 @@ elif page == "✉️ Cover Letter":
         cl_co = st.text_input("Company",     placeholder="e.g. Google", key="cl_co")
         cl_hm = st.text_input("Hiring Manager (optional)", placeholder="e.g. Sarah Johnson", key="cl_hm")
         cl_jd = st.text_area("Job Description", height=140, key="cl_jd", placeholder="Paste job posting here...")
+
+    # ── Extra options based on doc type ──
+    if doc_type == "📧 Follow-Up Email":
+        st.markdown('<div class="section-title">📧 Follow-Up Details</div>', unsafe_allow_html=True)
+        fu_context = st.radio("", ["After applying (no response)", "After phone screen", "After interview", "After rejection (re-engage)"], horizontal=True, label_visibility="collapsed", key="fu_ctx")
+        fu_days = st.slider("Days since last contact", 1, 30, 7, key="fu_days")
+    elif doc_type == "🙏 Thank You Note":
+        st.markdown('<div class="section-title">🙏 Interview Details</div>', unsafe_allow_html=True)
+        ty_round = st.radio("", ["Phone Screen", "Technical Interview", "Behavioral Interview", "Final Round / Onsite"], horizontal=True, label_visibility="collapsed", key="ty_round")
+        ty_topic = st.text_input("Key topic discussed (optional)", placeholder="e.g. system design, team culture, project X", key="ty_topic")
+    elif doc_type == "💼 LinkedIn Message":
+        st.markdown('<div class="section-title">💼 LinkedIn Context</div>', unsafe_allow_html=True)
+        li_type = st.radio("", ["Connection request to recruiter", "InMail to hiring manager", "Referral request to employee", "Networking message"], horizontal=True, label_visibility="collapsed", key="li_type")
+
     st.markdown('<div class="section-title">🎨 Tone</div>', unsafe_allow_html=True)
     tone = st.select_slider("", ["Very Formal","Professional","Friendly & Professional","Enthusiastic"], value="Professional", label_visibility="collapsed")
-    if st.button("✉️ Generate Cover Letter", type="primary", use_container_width=True, disabled=not api_key):
+
+    btn_label = {"✉️ Cover Letter": "✉️ Generate Cover Letter", "📧 Follow-Up Email": "📧 Generate Follow-Up Email", "🙏 Thank You Note": "🙏 Generate Thank You Note", "💼 LinkedIn Message": "💼 Generate LinkedIn Message", "❄️ Cold Outreach Email": "❄️ Generate Cold Outreach"}
+
+    if st.button(btn_label.get(doc_type, "✉️ Generate"), type="primary", use_container_width=True, disabled=not api_key):
         if not cl_r.strip(): st.error("❌ Please provide your resume.")
-        elif not cl_jd.strip(): st.error("❌ Please paste the job description.")
+        elif not cl_jd.strip() and doc_type == "✉️ Cover Letter": st.error("❌ Please paste the job description.")
         else:
-            with st.spinner("✉️ Writing your personalized cover letter..."):
-                try:
-                    letter = ai_call(f"""You are an elite career coach writing cover letters that get callbacks at top MNCs. Tone: {tone}.
+            # Build prompt based on doc type
+            if doc_type == "✉️ Cover Letter":
+                doc_prompt = f"""You are an elite career coach writing cover letters that get callbacks at top MNCs. Tone: {tone}.
 RESUME: {cl_r}
 JOB: {cl_jt or 'the position'} at {cl_co or 'the company'}
 HIRING MANAGER: {cl_hm or 'Hiring Manager'}
 JD: {cl_jd}
 Rules: powerful hook (NOT "I am writing to apply"), 3-4 paragraphs max 380 words, 2-3 specific quantified achievements from resume, 5 ATS keywords naturally, confident call to action. Sound human not generic AI.
-Write ONLY the letter starting from "Dear {cl_hm or 'Hiring Manager'}," """, temperature=0.75)
-                    st.markdown('<div class="section-title">✅ Your Cover Letter</div>', unsafe_allow_html=True)
+Write ONLY the letter starting from "Dear {cl_hm or 'Hiring Manager'}," """
+            elif doc_type == "📧 Follow-Up Email":
+                doc_prompt = f"""You are an expert at writing follow-up emails that get responses. Tone: {tone}.
+RESUME: {cl_r}
+JOB: {cl_jt or 'the position'} at {cl_co or 'the company'}
+CONTEXT: {fu_context}, it's been {fu_days} days since last contact.
+Rules: Subject line first, then email body. Keep under 150 words. Reference specific role/application. Add genuine value (insight about the company/industry). Polite but confident. Include clear next step.
+If after rejection: be gracious, express continued interest, ask to be considered for future roles."""
+            elif doc_type == "🙏 Thank You Note":
+                doc_prompt = f"""You are an expert at writing thank-you notes after interviews. Tone: {tone}.
+RESUME: {cl_r}
+JOB: {cl_jt or 'the position'} at {cl_co or 'the company'}
+INTERVIEW ROUND: {ty_round}
+KEY TOPIC DISCUSSED: {ty_topic or 'general discussion about the role'}
+Rules: Subject line first, then email. Under 200 words. Reference something specific from the conversation. Reinforce your fit with 1 specific example. Express genuine enthusiasm. Send within 24 hours vibe."""
+            elif doc_type == "💼 LinkedIn Message":
+                doc_prompt = f"""You are a networking expert writing LinkedIn messages that get accepted and replied to. Tone: {tone}.
+RESUME: {cl_r}
+TARGET: {cl_jt or 'the position'} at {cl_co or 'the company'}
+MESSAGE TYPE: {li_type}
+Rules: Under 300 characters for connection request, under 500 words for InMail. Be specific about WHY you're reaching out. Mention a genuine commonality. Don't beg or be desperate. Add value first. Make it easy to say yes."""
+            else:  # Cold Outreach
+                doc_prompt = f"""You are an expert at cold outreach emails that get responses from busy hiring managers. Tone: {tone}.
+RESUME: {cl_r}
+TARGET: {cl_jt or 'the position'} at {cl_co or 'the company'}
+Rules: Catchy subject line. Under 120 words body. Lead with value (what you can do for THEM). One specific impressive achievement with numbers. Easy CTA ("Would a 15-min call work?"). No attachments mention. Sound like a high-performer, not a job beggar."""
+
+            with st.spinner(f"✍️ Writing your {doc_type.split(' ', 1)[1]}..."):
+                try:
+                    letter = ai_call(doc_prompt, temperature=0.75)
+                    st.markdown(f'<div class="section-title">✅ Your {doc_type.split(" ", 1)[1]}</div>', unsafe_allow_html=True)
                     st.markdown(f'<div class="resume-output">{letter}</div>', unsafe_allow_html=True)
-                    st.download_button("⬇️ Download Cover Letter", data=letter, file_name=f"cover_letter_{(cl_co or 'company').replace(' ','_')}.txt", mime="text/plain", use_container_width=True)
-                    st.info("💡 Copy into Google Docs and add your name/address header before sending.")
+                    fname = doc_type.split(" ", 1)[1].lower().replace(" ", "_")
+                    st.download_button(f"⬇️ Download {doc_type.split(' ', 1)[1]}", data=letter, file_name=f"{fname}_{(cl_co or 'company').replace(' ','_')}.txt", mime="text/plain", use_container_width=True)
+                    st.info("💡 Always personalize the output before sending — add a specific detail about the company or person.")
                 except Exception as e: st.error(f"❌ {e}")
 
 
@@ -544,10 +677,14 @@ Write ONLY the letter starting from "Dear {cl_hm or 'Hiring Manager'}," """, tem
 # 🎤 INTERVIEW PREP
 # ════════════════════════════════════════════════════════
 elif page == "🎤 Interview Prep":
-    st.markdown("""<div class="hero"><div class="hero-badge">Role-Specific · Resume-Based · STAR Format</div>
-    <h1>Interview Prep Guide</h1>
-    <p>Get tailored interview questions with ideal answers — based on YOUR resume and the exact role</p></div>""", unsafe_allow_html=True)
-    if not api_key: st.warning("⚠️ Enter your free OpenRouter API key in the sidebar → openrouter.ai/keys")
+    st.markdown("""<div class="hero"><div class="hero-badge">Questions · STAR Stories · Salary Negotiation · Difficulty Levels</div>
+    <h1>Interview Prep Suite</h1>
+    <p>AI-powered interview preparation — questions, STAR story generator, and salary negotiation coaching tailored to YOUR resume</p></div>""", unsafe_allow_html=True)
+    if not api_key: st.warning("⚠️ Enter your free API key in the sidebar")
+
+    # ── Mode Selector ──
+    ip_mode = st.radio("", ["❓ Interview Questions", "⭐ STAR Story Generator", "💰 Salary Negotiation Prep"], horizontal=True, label_visibility="collapsed", key="ip_mode")
+
     c1,c2 = st.columns(2, gap="large")
     with c1:
         st.markdown('<div class="section-title">📄 Your Resume</div>', unsafe_allow_html=True)
@@ -564,48 +701,142 @@ elif page == "🎤 Interview Prep":
         ip_jt = st.text_input("Job Title", placeholder="e.g. Data Engineer", key="ip_jt")
         ip_co = st.text_input("Company",   placeholder="e.g. TCS, Google",   key="ip_co")
         ip_jd = st.text_area("Job Description", height=140, key="ip_jd", placeholder="Paste job posting here...")
-    st.markdown('<div class="section-title">⚙️ Question Categories</div>', unsafe_allow_html=True)
-    q1,q2,q3,q4 = st.columns(4)
-    with q1: qt = st.checkbox("🔧 Technical",  value=True)
-    with q2: qb = st.checkbox("🧠 Behavioral", value=True)
-    with q3: qs = st.checkbox("💡 Situational",value=True)
-    with q4: qf = st.checkbox("🏢 Company Fit",value=True)
-    nq = st.slider("Questions per category", 2, 5, 3)
-    if st.button("🎤 Generate Interview Questions", type="primary", use_container_width=True, disabled=not api_key):
-        if not ip_r.strip(): st.error("❌ Please provide your resume.")
-        elif not ip_jd.strip(): st.error("❌ Please paste the job description.")
-        else:
-            types = [t for t, c in [("Technical (role-specific skills, tools, concepts)",qt), ("Behavioral (STAR format, past experiences)",qb), ("Situational (hypothetical scenarios)",qs), ("Company Fit (culture, motivation, goals)",qf)] if c]
-            with st.spinner("🎤 Generating your personalized interview guide..."):
-                try:
-                    guide = ai_call(f"""You are a senior interviewer at a top MNC with 15 years hiring for {ip_jt or 'tech'} roles.
+
+    if ip_mode == "❓ Interview Questions":
+        st.markdown('<div class="section-title">⚙️ Question Settings</div>', unsafe_allow_html=True)
+        diff_col, cat_col = st.columns([1, 3])
+        with diff_col:
+            difficulty = st.radio("**Difficulty**", ["🟢 Entry Level", "🟡 Mid Level", "🔴 Senior Level"], key="ip_diff")
+        with cat_col:
+            q1,q2,q3,q4 = st.columns(4)
+            with q1: qt = st.checkbox("🔧 Technical",  value=True)
+            with q2: qb = st.checkbox("🧠 Behavioral", value=True)
+            with q3: qs = st.checkbox("💡 Situational",value=True)
+            with q4: qf = st.checkbox("🏢 Company Fit",value=True)
+        nq = st.slider("Questions per category", 2, 5, 3)
+        if st.button("🎤 Generate Interview Questions", type="primary", use_container_width=True, disabled=not api_key):
+            if not ip_r.strip(): st.error("❌ Please provide your resume.")
+            elif not ip_jd.strip(): st.error("❌ Please paste the job description.")
+            else:
+                diff_text = difficulty.split(" ", 1)[1]
+                types = [t for t, c in [("Technical (role-specific skills, tools, concepts)",qt), ("Behavioral (STAR format, past experiences)",qb), ("Situational (hypothetical scenarios)",qs), ("Company Fit (culture, motivation, goals)",qf)] if c]
+                with st.spinner("🎤 Generating your personalized interview guide..."):
+                    try:
+                        guide = ai_call(f"""You are a senior interviewer at a top MNC with 15 years hiring for {ip_jt or 'tech'} roles.
+DIFFICULTY LEVEL: {diff_text} — adjust question complexity accordingly.
 RESUME: {ip_r}
 ROLE: {ip_jt or 'the role'} at {ip_co or 'top MNC'}
 JD: {ip_jd}
 Generate {nq} questions for EACH: {', '.join(types)}
-For EVERY question: ❓ Question (specific to their resume), 🎯 Why asked (1 sentence), ✅ Ideal answer (3-4 bullets using their actual experience), ❌ Common mistake to avoid.
-Reference actual projects/skills from THEIR resume. Format with clear headers.""", temperature=0.6)
-                    st.markdown('<div class="section-title">✅ Your Interview Prep Guide</div>', unsafe_allow_html=True)
-                    st.markdown(f'<div class="resume-output">{guide}</div>', unsafe_allow_html=True)
-                    st.download_button("⬇️ Download Interview Guide", data=guide, file_name=f"interview_{(ip_jt or 'prep').replace(' ','_')}.txt", mime="text/plain", use_container_width=True)
-                    st.info("💡 Practice each answer out loud 3 times. Record yourself — it works!")
-                except Exception as e: st.error(f"❌ {e}")
+For EVERY question: ❓ Question (specific to their resume, calibrated for {diff_text} level), 🎯 Why asked (1 sentence), ✅ Ideal answer (3-4 bullets using their actual experience), ❌ Common mistake to avoid, 💡 Follow-up question the interviewer might ask.
+Reference actual projects/skills from THEIR resume. Format with clear headers and emojis.""", temperature=0.6)
+                        st.markdown('<div class="section-title">✅ Your Interview Prep Guide</div>', unsafe_allow_html=True)
+                        st.markdown(f'<div class="resume-output">{guide}</div>', unsafe_allow_html=True)
+                        st.download_button("⬇️ Download Interview Guide", data=guide, file_name=f"interview_{(ip_jt or 'prep').replace(' ','_')}.txt", mime="text/plain", use_container_width=True)
+                        st.info("💡 Practice each answer out loud 3 times. Record yourself — it works!")
+                    except Exception as e: st.error(f"❌ {e}")
+
+    elif ip_mode == "⭐ STAR Story Generator":
+        st.markdown("""<div class="info-box">⭐ <strong>STAR Method:</strong> Situation → Task → Action → Result. This generator creates polished STAR stories from your actual resume experiences — ready to use in behavioral interviews.</div>""", unsafe_allow_html=True)
+        star_count = st.slider("Number of STAR stories to generate", 3, 8, 5, key="star_count")
+        if st.button("⭐ Generate STAR Stories", type="primary", use_container_width=True, disabled=not api_key):
+            if not ip_r.strip(): st.error("❌ Please provide your resume.")
+            else:
+                with st.spinner("⭐ Crafting your STAR stories..."):
+                    try:
+                        stars = ai_call(f"""You are a career coach who specializes in behavioral interview preparation using the STAR method.
+
+RESUME: {ip_r}
+TARGET ROLE: {ip_jt or 'tech role'} at {ip_co or 'top company'}
+JD: {ip_jd or 'general tech role'}
+
+Generate {star_count} polished STAR stories based on REAL experiences from this resume.
+
+For EACH story:
+📌 STORY TITLE (e.g. "Led Database Migration Under Tight Deadline")
+🏷️ BEST FOR: (which interview question types this answers — e.g. leadership, problem-solving, teamwork)
+
+⭐ SITUATION: Set the scene (2-3 sentences, specific company/project from resume)
+📋 TASK: What was your specific responsibility (1-2 sentences)
+🎬 ACTION: What you specifically did — step by step (3-4 bullets with technical details)
+🏆 RESULT: Quantified outcome with numbers/percentages (2-3 bullets)
+
+💡 POWER PHRASES TO USE: 3 impressive phrases to drop naturally during the telling
+
+Pick diverse experiences covering: leadership, technical challenge, teamwork, failure/recovery, and initiative.
+Make stories feel authentic and conversational, not robotic.""", temperature=0.6, max_tokens=3000)
+                        st.markdown('<div class="section-title">⭐ Your STAR Stories</div>', unsafe_allow_html=True)
+                        st.markdown(f'<div class="resume-output">{stars}</div>', unsafe_allow_html=True)
+                        st.download_button("⬇️ Download STAR Stories", data=stars, file_name="star_stories.txt", mime="text/plain", use_container_width=True)
+                        st.info("💡 Memorize these stories loosely — don't recite them word-for-word. Practice telling each one in under 2 minutes.")
+                    except Exception as e: st.error(f"❌ {e}")
+
+    elif ip_mode == "💰 Salary Negotiation Prep":
+        st.markdown("""<div class="info-box">💰 <strong>Salary Negotiation:</strong> AI will analyze your resume, the target role, and current market data to create a personalized negotiation strategy with scripts you can use word-for-word.</div>""", unsafe_allow_html=True)
+        sal_col1, sal_col2 = st.columns(2)
+        with sal_col1:
+            current_sal = st.text_input("Current/Last Salary (optional)", placeholder="e.g. $85,000 or ₹12 LPA", key="cur_sal")
+        with sal_col2:
+            target_sal = st.text_input("Target Salary (optional)", placeholder="e.g. $120,000 or ₹18 LPA", key="tgt_sal")
+        if st.button("💰 Generate Negotiation Strategy", type="primary", use_container_width=True, disabled=not api_key):
+            if not ip_r.strip(): st.error("❌ Please provide your resume.")
+            else:
+                with st.spinner("💰 Building your negotiation strategy..."):
+                    try:
+                        neg = ai_call(f"""You are a salary negotiation expert who has coached 1000+ tech professionals to get 20-40% higher offers.
+
+RESUME: {ip_r}
+TARGET ROLE: {ip_jt or 'tech role'} at {ip_co or 'a company'}
+JD: {ip_jd or 'general tech role'}
+CURRENT SALARY: {current_sal or 'not disclosed'}
+TARGET SALARY: {target_sal or 'market rate'}
+
+Provide a COMPLETE negotiation strategy:
+
+1. 💰 MARKET ANALYSIS
+   - Estimated salary range for this role (low / mid / high / top)
+   - How this candidate's experience positions them in that range
+   - Factors that increase/decrease their leverage
+
+2. 🎯 YOUR ANCHOR NUMBER
+   - Specific number to ask for first and WHY
+   - Your walk-away minimum
+
+3. 📝 NEGOTIATION SCRIPTS (word-for-word)
+   - When asked "What are your salary expectations?"
+   - When they give a low offer
+   - When they say "That's above our budget"
+   - When asking for more equity/RSUs/bonus instead
+   - When negotiating PTO, remote work, signing bonus
+
+4. 🏆 LEVERAGE POINTS from their resume (specific achievements to reference)
+
+5. ⚠️ MISTAKES TO AVOID
+
+6. 📅 TIMING: When to negotiate (which stage of the process)
+
+Be specific with numbers. Use the resume's actual achievements as leverage.""", temperature=0.5, max_tokens=2500)
+                        st.markdown('<div class="section-title">💰 Your Negotiation Strategy</div>', unsafe_allow_html=True)
+                        st.markdown(f'<div class="resume-output">{neg}</div>', unsafe_allow_html=True)
+                        st.download_button("⬇️ Download Negotiation Strategy", data=neg, file_name="salary_negotiation.txt", mime="text/plain", use_container_width=True)
+                        st.info("💡 Never give your number first. Always let them make the first offer, then negotiate up using these scripts.")
+                    except Exception as e: st.error(f"❌ {e}")
 
 
 # ════════════════════════════════════════════════════════
 # 📝 RESUME BUILDER
 # ════════════════════════════════════════════════════════
 elif page == "📝 Resume Builder":
-    st.markdown("""<div class="hero"><div class="hero-badge">Build Fresh · Rewrite for New Job · 100% ATS Optimized</div>
-    <h1>AI Resume Builder</h1>
-    <p>Build a perfect resume from scratch — or paste your existing one and let AI rewrite it for any specific job</p></div>""", unsafe_allow_html=True)
-    if not api_key: st.warning("⚠️ Enter your free OpenRouter API key in the sidebar → openrouter.ai/keys")
+    st.markdown("""<div class="hero"><div class="hero-badge">Build Fresh · Rewrite for Job · LinkedIn Optimizer · 100% ATS</div>
+    <h1>AI Resume & LinkedIn Builder</h1>
+    <p>Build a perfect resume from scratch, rewrite for any job, or optimize your LinkedIn profile — all AI-powered</p></div>""", unsafe_allow_html=True)
+    if not api_key: st.warning("⚠️ Enter your free API key in the sidebar")
 
-    mode = st.radio("", ["✨ Build Fresh Resume", "🔄 Rewrite Existing Resume for New Job"], horizontal=True, label_visibility="collapsed", key="rb_mode")
+    mode = st.radio("", ["✨ Build Fresh Resume", "🔄 Rewrite for New Job", "💻 LinkedIn Profile Optimizer"], horizontal=True, label_visibility="collapsed", key="rb_mode")
     st.markdown("---")
 
     # ── MODE: REWRITE ──
-    if mode == "🔄 Rewrite Existing Resume for New Job":
+    if mode == "🔄 Rewrite for New Job":
         st.markdown("""<div class="info-box">🔄 <strong>How this works:</strong> Paste your current resume → paste the target job description
         → AI completely rewrites your resume to be 100% ATS-optimized for that specific job.
         Your facts stay accurate, but language, keywords, and structure are rebuilt for maximum impact.</div>""", unsafe_allow_html=True)
@@ -686,7 +917,7 @@ Output the COMPLETE rewritten resume, ready to copy-paste. Start with the person
                     except Exception as e: st.error(f"❌ {e}")
 
     # ── MODE: BUILD FRESH ──
-    else:
+    elif mode == "✨ Build Fresh Resume":
         st.markdown("""<div class="info-box">✨ <strong>How this works:</strong> Fill in your details → AI builds a complete,
         professional, ATS-optimized resume tailored to your target job. Takes about 20 seconds.</div>""", unsafe_allow_html=True)
         st.markdown('<div class="section-title">👤 Personal Info</div>', unsafe_allow_html=True)
@@ -740,14 +971,79 @@ Rules: Professional Summary (3 sentences, target title+top skills+value), power 
                         st.info("💡 Copy into Google Docs → format cleanly → go to 🎯 Analyzer to verify ATS score!")
                     except Exception as e: st.error(f"❌ {e}")
 
+    # ── MODE: LINKEDIN OPTIMIZER ──
+    elif mode == "💻 LinkedIn Profile Optimizer":
+        st.markdown("""<div class="info-box">💻 <strong>LinkedIn Optimizer:</strong> Paste your current LinkedIn profile (or resume) and target role — AI will generate an optimized LinkedIn Headline, About section, Experience bullets, and Featured section suggestions.</div>""", unsafe_allow_html=True)
+
+        li1, li2 = st.columns(2, gap="large")
+        with li1:
+            st.markdown('<div class="section-title">📄 Your Resume / LinkedIn Profile</div>', unsafe_allow_html=True)
+            li_input_type = st.radio("", ["📎 Upload PDF","📋 Paste Text"], horizontal=True, label_visibility="collapsed", key="li_rt")
+            li_text = ""
+            if li_input_type == "📎 Upload PDF":
+                up = st.file_uploader("", type=["pdf"], label_visibility="collapsed", key="li_pdf")
+                if up:
+                    try: li_text = extract_text_from_pdf(up); st.success(f"✅ {len(li_text.split())} words extracted")
+                    except ValueError as e: st.error(str(e))
+            else: li_text = st.text_area("", height=250, placeholder="Paste your resume or current LinkedIn profile text...", label_visibility="collapsed", key="li_paste")
+        with li2:
+            st.markdown('<div class="section-title">🎯 Target Role</div>', unsafe_allow_html=True)
+            li_role = st.text_input("Target Job Title", placeholder="e.g. Senior Data Engineer", key="li_role")
+            li_industry = st.text_input("Industry", placeholder="e.g. FinTech, HealthTech, FAANG", key="li_industry")
+            li_jd = st.text_area("Target JD (optional but recommended)", height=140, placeholder="Paste a job description to tailor your LinkedIn for...", key="li_jd")
+
+        st.markdown('<div class="section-title">⚙️ Optimize</div>', unsafe_allow_html=True)
+        lo1, lo2, lo3, lo4 = st.columns(4)
+        with lo1: lo_headline = st.checkbox("📌 Headline", value=True)
+        with lo2: lo_about = st.checkbox("📝 About Section", value=True)
+        with lo3: lo_exp = st.checkbox("💼 Experience Bullets", value=True)
+        with lo4: lo_featured = st.checkbox("⭐ Featured Suggestions", value=True)
+
+        if st.button("💻 Optimize My LinkedIn", type="primary", use_container_width=True, disabled=not api_key):
+            if not li_text.strip(): st.error("❌ Please provide your resume or LinkedIn profile.")
+            elif not li_role.strip(): st.error("❌ Please enter your target job title.")
+            else:
+                sections = [s for s, c in [("HEADLINE (120 char max, keyword-rich, attention-grabbing)", lo_headline), ("ABOUT SECTION (2600 char max, 3 paragraphs: hook + achievements + CTA)", lo_about), ("EXPERIENCE BULLETS (rewrite top 3 roles with LinkedIn-optimized bullets — longer than resume, more storytelling)", lo_exp), ("FEATURED SECTION (3-5 suggestions for what to feature: projects, certifications, published articles, posts)", lo_featured)] if c]
+                with st.spinner("💻 Optimizing your LinkedIn profile..."):
+                    try:
+                        linkedin = ai_call(f"""You are a LinkedIn optimization expert who has helped 500+ professionals get 10x more recruiter views.
+
+RESUME/PROFILE: {li_text}
+TARGET ROLE: {li_role}
+INDUSTRY: {li_industry or 'Tech'}
+TARGET JD: {li_jd or f'General {li_role} position'}
+
+Optimize these sections:
+{chr(10).join(f'- {s}' for s in sections)}
+
+Rules:
+- Use keywords recruiters search for in this industry
+- Headline: [Title] | [Key Skill 1] | [Key Skill 2] | [Unique Value] — NO emojis in headline
+- About: Start with a powerful hook question or stat. Use first person. Include 3 quantified achievements. End with what you're looking for and how to reach you. Use line breaks and emojis sparingly.
+- Experience: Each bullet should be 2-3 lines (LinkedIn allows more than resumes). Add context, tools, and results.
+- Featured: Suggest specific types of content with examples
+- Add a KEYWORDS section at the end: 20 recruiter search terms this profile should rank for
+
+Make it sound human, confident, and authentic — not like generic AI.""", temperature=0.5, max_tokens=2500)
+                        st.markdown('<div class="section-title">💻 Your Optimized LinkedIn Profile</div>', unsafe_allow_html=True)
+                        st.markdown(f'<div class="resume-output">{linkedin}</div>', unsafe_allow_html=True)
+                        st.download_button("⬇️ Download LinkedIn Optimization", data=linkedin, file_name="linkedin_optimized.txt", mime="text/plain", use_container_width=True)
+                        st.markdown("""<div class="win-box">⚡ <strong>Next Steps:</strong><br>
+                        1. Update your LinkedIn headline first (most impactful change)<br>
+                        2. Rewrite your About section<br>
+                        3. Update your 3 most recent Experience entries<br>
+                        4. Add Featured items<br>
+                        5. Turn on "Open to Work" badge (visible to recruiters only)</div>""", unsafe_allow_html=True)
+                    except Exception as e: st.error(f"❌ {e}")
+
 
 # ════════════════════════════════════════════════════════
 # 📊 DASHBOARD
 # ════════════════════════════════════════════════════════
 elif page == "📊 Dashboard":
-    st.markdown("""<div class="hero"><div class="hero-badge">Progress · Trends · Insights</div>
-    <h1>My Progress Dashboard</h1>
-    <p>Track your resume improvements and application history over time</p></div>""", unsafe_allow_html=True)
+    st.markdown("""<div class="hero"><div class="hero-badge">Progress · Trends · Insights · Career Intelligence</div>
+    <h1>Career Analytics Dashboard</h1>
+    <p>Track your resume improvements, identify skill gaps, and get AI-powered career intelligence</p></div>""", unsafe_allow_html=True)
     analyses = get_all_analyses(); ms = get_top_missing_skills(); st_data = get_score_trend()
     if not analyses: st.info("📭 No analyses yet. Go to **🎯 Analyzer** to get started!")
     else:
@@ -775,6 +1071,62 @@ elif page == "📊 Dashboard":
                 with h2: st.markdown("**Missing:**");  st.markdown(chips(a["missing_skills"][:8],"chip-red"),   unsafe_allow_html=True)
                 st.markdown(f"**Summary:** {a['overall_summary']}")
                 if st.button("🗑️ Delete", key=f"del_{a['id']}"): delete_analysis(a["id"]); st.rerun()
+
+        # ── AI CAREER COACH ──
+        st.markdown('---')
+        st.markdown('<div class="section-title">🧠 AI Career Coach — Personalized Roadmap</div>', unsafe_allow_html=True)
+        st.markdown("""<div class="info-box">🎯 <strong>Based on your analysis history:</strong> AI will analyze ALL your past results to create a personalized learning roadmap, identify career patterns, and suggest your best next moves.</div>""", unsafe_allow_html=True)
+
+        coach1, coach2 = st.columns(2)
+        with coach1:
+            if st.button("🗺️ Generate Learning Roadmap", use_container_width=True, disabled=not api_key, key="coach_road"):
+                # Gather all skill data
+                all_missing = []
+                all_matched = []
+                jobs_analyzed = []
+                for a in analyses:
+                    all_missing.extend(a.get("missing_skills", []))
+                    all_matched.extend(a.get("matched_skills", []))
+                    jobs_analyzed.append(f"{a.get('job_title','Unknown')} @ {a.get('company_name','')}")
+
+                with st.spinner("🗺️ Building your personalized learning roadmap..."):
+                    try:
+                        roadmap = ai_call(f"""You are a senior career coach. Based on this person's job search data, create a PERSONALIZED LEARNING ROADMAP.
+
+JOBS ANALYZED: {', '.join(jobs_analyzed[:10])}
+SKILLS THEY HAVE: {', '.join(set(all_matched))}
+SKILLS THEY KEEP MISSING: {', '.join(set(all_missing))}
+AVERAGE ATS SCORE: {avg_ats:.0f}/100
+TOTAL ANALYSES: {len(analyses)}
+
+Create:
+1. 🎯 TOP 5 SKILLS TO LEARN (ordered by impact on their job search — which skills appear most in their missing list)
+2. 📚 LEARNING PLAN (for each skill: best free resource, estimated time, hands-on project idea)
+3. 📈 30-DAY ACTION PLAN (week by week, specific daily actions)
+4. 🏆 QUICK WINS (3 skills they can learn in under a weekend that most jobs want)
+5. 💡 CAREER PATTERN ANALYSIS (based on the jobs they're applying to — are they focused or scattered? advice on strategy)
+6. 🎯 IDEAL TARGET (based on their existing skills, what role title should they focus on for best match?)
+
+Be specific with resource links (Coursera, YouTube, free courses). Make it actionable, not generic.""", temperature=0.5, max_tokens=2500)
+                        st.markdown(f'<div class="resume-output">{roadmap}</div>', unsafe_allow_html=True)
+                        st.download_button("⬇️ Download Learning Roadmap", data=roadmap, file_name="learning_roadmap.txt", mime="text/plain", use_container_width=True, key="dl_roadmap")
+                    except Exception as e: st.error(f"❌ {e}")
+
+        with coach2:
+            # Export all data
+            if st.button("📦 Export All Data", use_container_width=True, key="export_all"):
+                export_lines = ["AI CAREER SUITE — COMPLETE ANALYSIS EXPORT", "=" * 60, ""]
+                for a in analyses:
+                    export_lines.append(f"Job: {a.get('job_title','N/A')} @ {a.get('company_name','N/A')}")
+                    export_lines.append(f"Date: {a.get('created_at','N/A')}")
+                    export_lines.append(f"ATS: {a['ats_score']}/100 | Match: {a['match_score']}/100")
+                    export_lines.append(f"Matched: {', '.join(a.get('matched_skills',[]))}")
+                    export_lines.append(f"Missing: {', '.join(a.get('missing_skills',[]))}")
+                    export_lines.append(f"Summary: {a.get('overall_summary','N/A')}")
+                    export_lines.append("-" * 40)
+                    export_lines.append("")
+                export_text = "\n".join(export_lines)
+                st.download_button("⬇️ Download Export File", data=export_text, file_name="career_suite_export.txt", mime="text/plain", use_container_width=True, key="dl_export")
 
 
 # ════════════════════════════════════════════════════════
@@ -1263,7 +1615,8 @@ In the sidebar: select <strong>🔀 OpenRouter</strong> → keep model as <stron
 ✅ <strong style="color:#e2e8f0">Matched & Missing Skills</strong> — keyword gaps<br>
 ⚡ <strong style="color:#e2e8f0">Quick Wins</strong> — fix these TODAY for more callbacks<br>
 🚨 <strong style="color:#e2e8f0">Red Flags</strong> — what recruiters notice negatively<br>
-💰 <strong style="color:#e2e8f0">Salary Insight</strong> — your estimated market value
+💰 <strong style="color:#e2e8f0">Salary Insight</strong> — your estimated market value<br>
+📊 <strong style="color:#e2e8f0">Deep Analysis</strong> — competitive positioning, section grades, AI rewrites
 </div>
 </div>
 </div>
@@ -1275,15 +1628,15 @@ In the sidebar: select <strong>🔀 OpenRouter</strong> → keep model as <stron
 """, unsafe_allow_html=True)
 
     # ── TOOL 2: COVER LETTER ──
-    st.markdown('<div class="section-title">✉️ Tool 2 — Cover Letter Generator</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-title">✉️ Tool 2 — Smart Letter Generator</div>', unsafe_allow_html=True)
     st.markdown("""
 <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:1.8rem;margin-bottom:1.2rem">
 
 <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.2rem;flex-wrap:wrap">
   <div style="font-size:2.5rem">✉️</div>
   <div>
-    <div style="font-family:Syne,sans-serif;font-size:1.2rem;font-weight:700;color:#e2e8f0">Cover Letter Generator</div>
-    <div style="color:#94a3b8;font-size:0.88rem">AI writes a custom, ATS-optimized cover letter tailored to the exact job</div>
+    <div style="font-family:Syne,sans-serif;font-size:1.2rem;font-weight:700;color:#e2e8f0">Smart Letter Generator</div>
+    <div style="color:#94a3b8;font-size:0.88rem">Cover letters, follow-up emails, thank-you notes, LinkedIn messages, and cold outreach — all AI-powered</div>
   </div>
   <div style="margin-left:auto">
     <span style="background:rgba(16,185,129,0.12);color:#10b981;border:1px solid rgba(16,185,129,0.3);padding:4px 12px;border-radius:100px;font-size:0.75rem;font-weight:700">~20 seconds</span>
