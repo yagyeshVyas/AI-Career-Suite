@@ -1337,12 +1337,14 @@ Provide:
 1. 🎯 RECOMMENDED ROLES: Top 3 job titles they should hunt for (most qualified).
 2. 🏢 TARGET COMPANIES: 5 specific companies (MNC + Startups) that hire for these roles and would value this background.
 3. 🗺️ SMART SEARCH STRATEGY: One sentence on how to filter results for maximum success.
-4. 🔗 DIRECT SEARCH LINKS: For each recommended role, provide a valid URL for LinkedIn and Indeed searches.
-   Format as: [Role Name] - [LinkedIn Search Link] | [Indeed Search Link]
+4. 🔗 DIRECT SEARCH LINKS: For EACH recommended role, provide a direct clickable URL for:
+   - 🔵 LinkedIn Jobs: https://www.linkedin.com/jobs/search/?keywords=[ROLENAME_URL_ENCODED]&location=[LOCATION_URL_ENCODED]
+   - 🔴 Indeed Jobs: https://www.indeed.com/jobs?q=[ROLENAME_URL_ENCODED]&l=[LOCATION_URL_ENCODED]
+   - 🟢 Google Jobs: https://www.google.com/search?q=jobs+near+me+[ROLENAME_URL_ENCODED]
 5. 💹 MARKET SALARY: Estimated range for these roles based on the experience level in resume.
 6. ✨ THE "HIDDEN" PATH: One alternative career path where these skills transition perfectly.
 
-Format with beautiful markdown, bold headers, and emojis.""", temperature=0.6, max_tokens=2000)
+Format with beautiful markdown, bold headers, and emojis. Ensure URLs are properly formatted as markdown [Label](URL).""", temperature=0.6, max_tokens=2000)
                     
                     st.markdown('<div class="section-title">📊 Your Career Roadmap</div>', unsafe_allow_html=True)
                     st.markdown(f'<div class="resume-output">{discovery}</div>', unsafe_allow_html=True)
