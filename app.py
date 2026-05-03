@@ -1318,11 +1318,34 @@ elif page == "🤖 AI Copilot":
     <p>Chat directly with your AI coach. Ask it to rewrite a specific bullet, conduct a mock interview, or give salary advice.</p></div>""", unsafe_allow_html=True)
     
     if "messages" not in st.session_state:
-        st.session_state.messages = [{"role": "assistant", "content": "Hello! I am your AI Career Copilot. I have access to your most recent resume analysis. How can I help you today? (e.g. 'Rewrite my 3rd bullet point', 'Roleplay an Amazon interview with me')"}]
+        st.session_state.messages = [{"role": "assistant", "content": "Hello! I am your AI Career Copilot. You can set your resume and job description via the '⚙️ Set Context' menu above. How can I help you today? (e.g. 'Rewrite my 3rd bullet point', 'Roleplay an Amazon interview with me', 'Help me find a job')"}]
 
     if not api_key:
         st.warning("⚠️ Please provide an API key in the sidebar to chat with the Copilot.")
     else:
+        with st.expander("⚙️ Set Context (Optional: Provide your Resume & Job Description)", expanded=False):
+            c1, c2 = st.columns(2)
+            with c1:
+                cp_r_type = st.radio("Resume Input:", ["Paste Text", "📎 Upload PDF"], horizontal=True, key="cp_r_type")
+                copilot_r = ""
+                if cp_r_type == "📎 Upload PDF":
+                    up = st.file_uploader("", type=["pdf"], label_visibility="collapsed", key="cp_pdf")
+                    if up:
+                        copilot_r = extract_text_from_pdf(up)
+                else:
+                    copilot_r = st.text_area("Resume Content", height=150, key="cp_r", placeholder="Paste your resume here...")
+            with c2:
+                cp_j_mode = st.radio("Provide Job Description:", ["Paste Text", "🕸️ Scrape URL"], horizontal=True, key="cp_j_mode")
+                if cp_j_mode == "🕸️ Scrape URL":
+                    cp_url = st.text_input("Job Link URL", placeholder="https://greenhouse.io/...", key="cp_url")
+                    if cp_url and st.button("⬇️ Scrape Page", key="cp_scrape"):
+                        with st.spinner("Extracting..."):
+                            js_txt = fetch_job_description(cp_url)
+                            st.session_state["cp_fetched_jd"] = js_txt
+                    copilot_jd = st.text_area("Extracted Job Context", value=st.session_state.get("cp_fetched_jd", ""), height=100, key="cp_jd")
+                else:
+                    copilot_jd = st.text_area("Job Description", height=150, key="cp_jd_paste", placeholder="Paste job posting here...")
+
         # Display chat messages
         for msg in st.session_state.messages:
             with st.chat_message(msg["role"]):
@@ -1334,14 +1357,20 @@ elif page == "🤖 AI Copilot":
             with st.chat_message("user"):
                 st.markdown(prompt)
 
-            # Build Context from last analysis if exists
+            # Build Context
             context = ""
-            if "last_result" in st.session_state:
+            if copilot_r or copilot_jd:
+                context += "\n[User's Provided Context]\n"
+                if copilot_r:
+                    context += f"RESUME:\n{copilot_r}\n\n"
+                if copilot_jd:
+                    context += f"TARGET JOB:\n{copilot_jd}\n\n"
+            elif "last_result" in st.session_state:
                 lr = st.session_state["last_result"]
-                context = f"[Context: The user applied for '{lr.get('job_title', 'a job')}' at '{lr.get('company_name', 'a company')}'. ATS Score: {lr.get('ats_score', 0)}. Resume word count: {lr.get('word_count', 0)}.]\n\n"
+                context += f"\n[Previous Analysis Context: The user applied for '{lr.get('job_title', 'a job')}' at '{lr.get('company_name', 'a company')}'. ATS Score: {lr.get('ats_score', 0)}.]\n\n"
 
             # Prepare messages for API
-            system_prompt = "You are an elite executive career coach and technical recruiter. " + context + "Help the user negotiate salary, rewrite resume points, or practice interviews. Keep responses highly actionable and concise."
+            system_prompt = "You are an elite executive career coach and technical recruiter. " + context + "Help the user negotiate salary, rewrite resume points, practice interviews, or suggest how to find a job. Keep responses highly actionable and concise."
             
             with st.chat_message("assistant"):
                 with st.spinner("Thinking..."):
