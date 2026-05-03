@@ -14,6 +14,9 @@ from database import (
     init_db, save_analysis, get_all_analyses,
     get_top_missing_skills, get_score_trend, delete_analysis
 )
+import plotly.express as px
+import plotly.graph_objects as go
+from scrape_job import fetch_job_description
 
 st.set_page_config(
     page_title="AI Career Suite",
@@ -160,6 +163,22 @@ h1,h2,h3 { font-family:var(--font-h) !important; color:var(--text) !important; }
     backdrop-filter:blur(8px);
 }
 .api-box { background:rgba(139,92,246,0.08); border:1px solid rgba(139,92,246,0.2); border-radius:10px; padding:0.8rem; font-size:0.78rem; color:var(--purple2); margin-top:0.4rem; line-height:1.6; }
+
+/* ── Global Staggered Animations ── */
+div[data-testid="stVerticalBlock"] > div { animation:fade-in 0.6s ease-out backwards; }
+div[data-testid="stVerticalBlock"] > div:nth-child(1) { animation-delay:0.05s; }
+div[data-testid="stVerticalBlock"] > div:nth-child(2) { animation-delay:0.1s; }
+div[data-testid="stVerticalBlock"] > div:nth-child(3) { animation-delay:0.15s; }
+div[data-testid="stVerticalBlock"] > div:nth-child(4) { animation-delay:0.2s; }
+div[data-testid="stVerticalBlock"] > div:nth-child(5) { animation-delay:0.25s; }
+
+/* ── Modern Chat Bubbles (For Copilot) ── */
+.stChatMessage {
+    background:rgba(255,255,255,0.02) !important;
+    border:1px solid rgba(139,92,246,0.15) !important;
+    border-radius:16px !important; margin-bottom:1rem;
+    backdrop-filter:blur(10px) !important;
+}
 .api-box a { color:var(--purple2); text-decoration:none; font-weight:600; }
 .free-badge { display:inline-block; background:rgba(16,185,129,0.15); color:#10b981; border:1px solid rgba(16,185,129,0.3); font-size:0.65rem; padding:2px 8px; border-radius:100px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; margin-bottom:0.4rem; }
 .paid-badge { display:inline-block; background:rgba(245,158,11,0.15); color:#f59e0b; border:1px solid rgba(245,158,11,0.3); font-size:0.65rem; padding:2px 8px; border-radius:100px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; margin-bottom:0.4rem; }
@@ -360,7 +379,7 @@ with st.sidebar:
     page = st.radio("**📌 Navigate**", [
         "🎯 Analyzer", "✉️ Cover Letter",
         "🎤 Interview Prep", "📝 Resume Builder",
-        "📊 Dashboard", "🔑 API Guide", "📖 How to Use", "ℹ️ About"
+        "📊 Dashboard", "🤖 AI Copilot", "🔑 API Guide", "📖 How to Use", "ℹ️ About"
     ], label_visibility="collapsed")
     st.markdown("---")
     st.markdown("<div style='font-size:0.72rem;color:#475569;text-align:center;line-height:1.8'>Built by <b style='color:#7c3aed'>Yagyesh Vyas</b><br>Python · 10+ AI APIs · SQLite · Streamlit</div>", unsafe_allow_html=True)
@@ -429,7 +448,16 @@ if page == "🎯 Analyzer":
         st.markdown('<div class="section-title">💼 Job Details</div>', unsafe_allow_html=True)
         jt = st.text_input("Job Title", placeholder="e.g. Data Engineer, AI Engineer")
         co = st.text_input("Company", placeholder="e.g. Google, Amazon, TCS")
-        jd = st.text_area("Job Description", height=180, placeholder="Paste the full job posting here — requirements, responsibilities, qualifications...")
+        j_mode = st.radio("Provide Job Description:", ["Paste Text", "🕸️ Scrape URL"], horizontal=True)
+        if j_mode == "🕸️ Scrape URL":
+            url = st.text_input("Job Link URL", placeholder="https://greenhouse.io/... (Many job boards supported)")
+            if url and st.button("⬇️ Scrape Page"):
+                with st.spinner("Extracting..."):
+                    js_txt = fetch_job_description(url)
+                    st.session_state["fetched_jd"] = js_txt
+            jd = st.text_area("Extracted Job Context", value=st.session_state.get("fetched_jd", ""), height=150)
+        else:
+            jd = st.text_area("Job Description", height=180, placeholder="Paste the full job posting here — requirements, responsibilities, qualifications...")
 
     st.markdown("")
     if st.button("🚀 Analyze My Resume", type="primary", use_container_width=True, disabled=not api_key):
@@ -634,7 +662,17 @@ elif page == "✉️ Cover Letter":
         cl_jt = st.text_input("Job Title", placeholder="e.g. Data Engineer", key="cl_jt")
         cl_co = st.text_input("Company", placeholder="e.g. Google", key="cl_co")
         cl_hm = st.text_input("Hiring Manager (optional)", placeholder="e.g. Sarah Johnson", key="cl_hm")
-        cl_jd = st.text_area("Job Description", height=140, key="cl_jd", placeholder="Paste job posting here...")
+        
+        cl_j_mode = st.radio("Provide Job Description:", ["Paste Text", "🕸️ Scrape URL"], horizontal=True, key="cl_j_mode")
+        if cl_j_mode == "🕸️ Scrape URL":
+            cl_url = st.text_input("Job Link URL", placeholder="https://greenhouse.io/...", key="cl_url")
+            if cl_url and st.button("⬇️ Scrape Page", key="cl_scrape"):
+                with st.spinner("Extracting..."):
+                    js_txt = fetch_job_description(cl_url)
+                    st.session_state["cl_fetched_jd"] = js_txt
+            cl_jd = st.text_area("Extracted Job Context", value=st.session_state.get("cl_fetched_jd", ""), height=100, key="cl_jd")
+        else:
+            cl_jd = st.text_area("Job Description", height=140, key="cl_jd_paste", placeholder="Paste job posting here...")
 
     # ── Extra options based on doc type ──
     if doc_type == "📧 Follow-Up Email":
@@ -739,7 +777,17 @@ elif page == "🎤 Interview Prep":
         st.markdown('<div class="section-title">💼 Job Details</div>', unsafe_allow_html=True)
         ip_jt = st.text_input("Job Title", placeholder="e.g. Data Engineer", key="ip_jt")
         ip_co = st.text_input("Company", placeholder="e.g. TCS, Google", key="ip_co")
-        ip_jd = st.text_area("Job Description", height=140, key="ip_jd", placeholder="Paste job posting here...")
+        
+        ip_j_mode = st.radio("Provide Job Description:", ["Paste Text", "🕸️ Scrape URL"], horizontal=True, key="ip_j_mode")
+        if ip_j_mode == "🕸️ Scrape URL":
+            ip_url = st.text_input("Job Link URL", placeholder="https://greenhouse.io/...", key="ip_url")
+            if ip_url and st.button("⬇️ Scrape Page", key="ip_scrape"):
+                with st.spinner("Extracting..."):
+                    js_txt = fetch_job_description(ip_url)
+                    st.session_state["ip_fetched_jd"] = js_txt
+            ip_jd = st.text_area("Extracted Job Context", value=st.session_state.get("ip_fetched_jd", ""), height=100, key="ip_jd")
+        else:
+            ip_jd = st.text_area("Job Description", height=140, key="ip_jd_paste", placeholder="Paste job posting here...")
 
     if ip_mode == "❓ Interview Questions":
         st.markdown('<div class="section-title">⚙️ Question Settings</div>', unsafe_allow_html=True)
@@ -913,7 +961,17 @@ elif page == "📝 Resume Builder":
             st.markdown('<div class="section-title">🎯 Target Job</div>', unsafe_allow_html=True)
             rw_jt = st.text_input("Job Title *", placeholder="e.g. Data Engineer, AI Engineer", key="rw_jt")
             rw_co = st.text_input("Company (optional)", placeholder="e.g. Google, Amazon, TCS", key="rw_co")
-            rw_jd = st.text_area("Job Description *", height=220, placeholder="Paste the full job posting here — the more detail, the better the rewrite...", key="rw_jd")
+            
+            rw_j_mode = st.radio("Provide Job Description:", ["Paste Text", "🕸️ Scrape URL"], horizontal=True, key="rw_j_mode")
+            if rw_j_mode == "🕸️ Scrape URL":
+                rw_url = st.text_input("Job Link URL", placeholder="https://greenhouse.io/...", key="rw_url")
+                if rw_url and st.button("⬇️ Scrape Page", key="rw_scrape"):
+                    with st.spinner("Extracting..."):
+                        js_txt = fetch_job_description(rw_url)
+                        st.session_state["rw_fetched_jd"] = js_txt
+                rw_jd = st.text_area("Extracted Job Context", value=st.session_state.get("rw_fetched_jd", ""), height=120, key="rw_jd")
+            else:
+                rw_jd = st.text_area("Job Description *", height=220, placeholder="Paste the full job posting here — the more detail, the better the rewrite...", key="rw_jd_paste")
 
         st.markdown('<div class="section-title">⚙️ Rewrite Options</div>', unsafe_allow_html=True)
         op1, op2, op3 = st.columns(3)
@@ -1012,7 +1070,16 @@ Output the COMPLETE rewritten resume, ready to copy-paste. Start with the person
         with ce1:
             rb_cert = st.text_area("Certifications", height=75, key="rb_cert", placeholder="AWS ML Fundamentals, Jan 2026\nKubernetes Cloud Native, Jan 2026")
         with ce2:
-            rb_jd = st.text_area("Target Job Description (recommended)", height=75, key="rb_jd2", placeholder="Paste the job you're targeting for a tailored resume...")
+            rb_j_mode = st.radio("Provide Target JD:", ["Paste Text", "🕸️ Scrape URL"], horizontal=True, key="rb2_j_mode")
+            if rb_j_mode == "🕸️ Scrape URL":
+                rb2_url = st.text_input("Job Link URL", placeholder="https://greenhouse.io/...", key="rb2_url")
+                if rb2_url and st.button("⬇️ Scrape Page", key="rb2_scrape"):
+                    with st.spinner("Extracting..."):
+                        js_txt = fetch_job_description(rb2_url)
+                        st.session_state["rb2_fetched_jd"] = js_txt
+                rb_jd = st.text_area("Extracted Job Context", value=st.session_state.get("rb2_fetched_jd", ""), height=75, key="rb_jd2")
+            else:
+                rb_jd = st.text_area("Target Job Description (recommended)", height=75, key="rb_jd2_paste", placeholder="Paste the job you're targeting for a tailored resume...")
 
         if st.button("📝 Build My Resume", type="primary", use_container_width=True, disabled=not api_key):
             if not rb_name.strip() or not rb_mail.strip() or not rb_tgt.strip():
@@ -1140,14 +1207,34 @@ elif page == "📊 Dashboard":
         m4.metric("🏆 Best ATS", f"{best}/100")
         if len(st_data) >= 2:
             st.markdown('<div class="section-title">📈 Score Improvement Over Time</div>', unsafe_allow_html=True)
-            df = pd.DataFrame(st_data).set_index("date")[["ats", "match"]]
-            df.columns = ["ATS Score", "Match Score"]
-            st.line_chart(df)
+            df = pd.DataFrame(st_data)
+            fig_line = px.area(df, x="date", y=["ats", "match"], 
+                               labels={"value": "Score (0-100)", "date": "Date"},
+                               color_discrete_sequence=["#8b5cf6", "#10b981"])
+            fig_line.update_layout(plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)", font=dict(color="#94a3b8"), legend_title_text="Metric", margin=dict(l=0, r=0, t=10, b=0))
+            st.plotly_chart(fig_line, use_container_width=True)
+            
         if ms:
             st.markdown('<div class="section-title">🎯 Skills You Keep Missing — Learn These First</div>', unsafe_allow_html=True)
-            df2 = pd.DataFrame(ms).head(10).set_index("skill")
-            df2.columns = ["Times Required"]
-            st.bar_chart(df2)
+            df2 = pd.DataFrame(ms).head(8)
+            
+            # Create a futuristic Radar Chart for missing skills
+            fig_radar = go.Figure()
+            fig_radar.add_trace(go.Scatterpolar(
+                r=df2["times_missing"].tolist(),
+                theta=df2["skill"].tolist(),
+                fill='toself',
+                name='Missing Frequency',
+                line_color='#ec4899',
+                fillcolor='rgba(236,72,153,0.3)'
+            ))
+            fig_radar.update_layout(
+                polar=dict(radialaxis=dict(visible=True, range=[0, df2["times_missing"].max() + 1]), bgcolor="rgba(0,0,0,0)"),
+                showlegend=False,
+                plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
+                font=dict(color="#e2e8f0"), margin=dict(l=40, r=40, t=20, b=20)
+            )
+            st.plotly_chart(fig_radar, use_container_width=True)
         st.markdown('<div class="section-title">📋 Analysis History</div>', unsafe_allow_html=True)
         for a in analyses:
             icon = "🟢" if a["ats_score"] >= 70 else ("🟡" if a["ats_score"] >= 50 else "🔴")
@@ -1220,6 +1307,54 @@ Be specific with resource links (Coursera, YouTube, free courses). Make it actio
                     export_lines.append("")
                 export_text = "\n".join(export_lines)
                 st.download_button("⬇️ Download Export File", data=export_text, file_name="career_suite_export.txt", mime="text/plain", use_container_width=True, key="dl_export")
+
+
+# ════════════════════════════════════════════════════════
+# 🤖 AI COPILOT
+# ════════════════════════════════════════════════════════
+elif page == "🤖 AI Copilot":
+    st.markdown("""<div class="hero"><div class="hero-badge">Interactive · Conversational · Always On</div>
+    <h1>AI Career Copilot</h1>
+    <p>Chat directly with your AI coach. Ask it to rewrite a specific bullet, conduct a mock interview, or give salary advice.</p></div>""", unsafe_allow_html=True)
+    
+    if "messages" not in st.session_state:
+        st.session_state.messages = [{"role": "assistant", "content": "Hello! I am your AI Career Copilot. I have access to your most recent resume analysis. How can I help you today? (e.g. 'Rewrite my 3rd bullet point', 'Roleplay an Amazon interview with me')"}]
+
+    if not api_key:
+        st.warning("⚠️ Please provide an API key in the sidebar to chat with the Copilot.")
+    else:
+        # Display chat messages
+        for msg in st.session_state.messages:
+            with st.chat_message(msg["role"]):
+                st.markdown(msg["content"])
+
+        # Chat input
+        if prompt := st.chat_input("Ask your career coach anything..."):
+            st.session_state.messages.append({"role": "user", "content": prompt})
+            with st.chat_message("user"):
+                st.markdown(prompt)
+
+            # Build Context from last analysis if exists
+            context = ""
+            if "last_result" in st.session_state:
+                lr = st.session_state["last_result"]
+                context = f"[Context: The user applied for '{lr.get('job_title', 'a job')}' at '{lr.get('company_name', 'a company')}'. ATS Score: {lr.get('ats_score', 0)}. Resume word count: {lr.get('word_count', 0)}.]\n\n"
+
+            # Prepare messages for API
+            system_prompt = "You are an elite executive career coach and technical recruiter. " + context + "Help the user negotiate salary, rewrite resume points, or practice interviews. Keep responses highly actionable and concise."
+            
+            with st.chat_message("assistant"):
+                with st.spinner("Thinking..."):
+                    try:
+                        # Construct prompt history
+                        history = "\\n".join([f"{m['role'].capitalize()}: {m['content']}" for m in st.session_state.messages[-5:]])
+                        full_prompt = f"{system_prompt}\\n\\nConversation History:\\n{history}\\n\\nAssistant:"
+                        
+                        response = ai_call(full_prompt, temperature=0.6, max_tokens=1000)
+                        st.markdown(response)
+                        st.session_state.messages.append({"role": "assistant", "content": response})
+                    except Exception as e:
+                        st.error(f"❌ Error: {e}")
 
 
 # ════════════════════════════════════════════════════════
